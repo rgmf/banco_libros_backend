@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  bl-nginx:
+    image: nginx:alpine
+    ports:
+      - 8080:80
+      - 443:443
+    networks:
+      - bl-network
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+
+  bl-app:
+    build:
+      dockerfile: docker/php-fpm/Dockerfile
+    networks:
+      - bl-network
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - bl-mariadb
+
+  bl-mariadb:
+    image: mariadb
+    env_file:
+      - .env
+    environment:
+      MARIADB_ROOT_PASSWORD: "${DB_PASSWORD}"
+      MARIADB_DATABASE: "${DB_DATABASE}"
+      MARIADB_USER: "${DB_USERNAME}"
+      MARIADB_PASSWORD: "${DB_PASSWORD}"
+    networks:
+      - bl-network
+    volumes:
+      - ./bl-mariadbdata:/var/lib/mysql
+
+networks:
+  bl-network:
+    driver: bridge
+
+volumes:
+  bl-mariadbdata:
+      driver: local
