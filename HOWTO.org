@@ -1,0 +1,63 @@
+* Add database for testing into Docker
+** Step 1: create a new service (container) for test database
+Add to the **docker-compose.yml** file the following service for database testing container:
+
+#+BEGIN_SRC yaml
+bl-mariadb-test:
+  image: mariadb
+  environment:
+    MARIADB_ROOT_PASSWORD: "${DB_PASSWORD}"
+    MARIADB_DATABASE: "${DB_DATABASE}"
+    MARIADB_USER: "${DB_USERNAME}"
+    MARIADB_PASSWORD: "${DB_PASSWORD}"
+  networks:
+    - bl-network
+  ports:
+    - "3307:3306
+#+END_SRC
+
+The port **3307** is only for access to that container from your local machine but not from other containers in the same network.
+
+** Step 2: complete .env file
+Add to the **.env** file the environment variables with test database information:
+
+#+BEGIN_SRC env
+DB_TEST_CONNECTION=testing
+DB_TEST_HOST=bl-mariadb-test
+DB_TEST_PORT=3306
+DB_TEST_DATABASE=bancolibros
+DB_TEST_USERNAME=bancolibros
+DB_TEST_PASSWORD=bancolibros
+#+END_SRC
+
+Look at the port: it's not 3307 but 3306 because internally, in other containers, the port is 3306.
+
+** Step 3: add a new connection in config/database.php
+Fore example, a connection called **testing** where environment variables for test database ares used:
+
+#+BEGIN_SRC php
+'testing' => [
+    'driver' => 'mysql',
+    'url' => env('DATABASE_TEST_URL'),
+    'host' => env('DB_TEST_HOST', '127.0.0.1'),
+    'port' => env('DB_TEST_PORT', '3307'),
+    'database' => env('DB_TEST_DATABASE', 'forge'),
+    'username' => env('DB_TEST_USERNAME', 'forge'),
+    'password' => env('DB_TEST_PASSWORD', ''),
+    'unix_socket' => env('DB_SOCKET', ''),
+    'charset' => 'utf8mb4',
+    'collation' => 'utf8mb4_unicode_ci',
+    'prefix' => '',
+    'prefix_indexes' => true,
+    'strict' => true,
+    'engine' => null,
+    'options' => extension_loaded('pdo_mysql') ? array_filter([
+        PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+    ]) : [],
+],
+#+END_SRC
+
+** Step 4: (optional but important) use RefreshDatabase trait
+It is often useful to reset your database after each test so that data from a previous test does not interfere with subsequent tests. The RefreshDatabase trait takes the most optimal approach to migrating your test database depending on if you are using an in-memory database or a traditional database.
+
+You can add this trait in all tests where database is used or add it into the TestCase class (tests/TestCase.php file) that is the base class for all your test classes in Laravel.
