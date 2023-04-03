@@ -6,6 +6,7 @@ use App\Http\Requests\BookRequest;
 use App\Http\Requests\BookUpdateRequest;
 
 use App\Models\Book;
+use Illuminate\Database\QueryException;
 
 class BookController extends Controller
 {
@@ -17,13 +18,29 @@ class BookController extends Controller
 
     public function store(BookRequest $request)
     {
-        $book = Book::create([
-            'isbn' => $request->input('isbn'),
-            'title' => $request->input('title'),
-            'author' => $request->input('author'),
-            'publisher' => $request->input('publisher'),
-            'volumes' => $request->input('volumes')
-        ]);
+        try {
+            $book = Book::create([
+                'isbn' => $request->input('isbn'),
+                'title' => $request->input('title'),
+                'author' => $request->input('author'),
+                'publisher' => $request->input('publisher'),
+                'volumes' => $request->input('volumes')
+            ]);
+        } catch (QueryException $exception) {
+            $error_code = $exception->errorInfo[1];
+            if ($error_code == 1062) {
+                return response()->json([
+                    'message' => 'El libro ya existe',
+                    'error' => $exception->getMessage()
+                ], 409);
+            } else {
+                return response()->json([
+                    'message' => 'Error al insertar el libro',
+                    'error' => $exception->getMessage()
+                ], 500);
+            }
+        }
+
         return response()->json([
             'message' => 'Libro insertado correctamente',
             'book' => $book
@@ -46,12 +63,27 @@ class BookController extends Controller
 
     public function update(BookUpdateRequest $request, Book $book)
     {
-        $book->fill($request->only($request->keys()));
-        $book->save();
-        return response()->json([
-            'message' => 'Libro actualizado correctamente',
-            'book' => $book
-        ], 201);
+        try {
+            $book->fill($request->only($request->keys()));
+            $book->save();
+            return response()->json([
+                'message' => 'Libro actualizado correctamente',
+                'book' => $book
+            ], 201);
+        } catch (QueryException $exception) {
+            $error_code = $exception->errorInfo[1];
+            if ($error_code == 1062) {
+                return response()->json([
+                    'message' => 'Ya existe un libro con esos datos',
+                    'error' => $exception->getMessage()
+                ], 409);
+            } else {
+                return response()->json([
+                    'message' => 'Error al actualizar el libro',
+                    'error' => $exception->getMessage()
+                ], 500);
+            }
+        }
     }
 
     public function destroy(int $id)

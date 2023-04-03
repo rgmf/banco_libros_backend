@@ -47,7 +47,7 @@ class BookTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonIsObject();
 
-        $arrayObj = $response->json();
+        $arrayObj = $response->json()['book'];
 
         assertTrue(array_key_exists('id', $arrayObj));
         assertTrue(array_key_exists('isbn', $arrayObj));
@@ -130,6 +130,22 @@ class BookTest extends TestCase
         assertEquals($countStart + 1, $countEnd);
     }
 
+    public function test_post_api_book_already_exists_error(): void
+    {
+        $data = [
+            'isbn' => '1112223334445',
+            'title' => 'Book title',
+            'author' => 'Book author',
+            'publisher' => 'Book publisher',
+            'volumes' => 1
+        ];
+
+        $this->post(route('books.store'), $data);
+        $response = $this->post(route('books.store'), $data);
+        $response->assertStatus(409);
+        assertEquals('El libro ya existe', $response->json()['message']);
+    }
+
     public function test_post_api_book_error_required_data(): void
     {
         $countStart = Book::get()->count();
@@ -172,6 +188,28 @@ class BookTest extends TestCase
         assertTrue(array_key_exists('volumes', $arrayObj));
         assertTrue(array_key_exists('created_at', $arrayObj));
         assertTrue(array_key_exists('updated_at', $arrayObj));
+    }
+
+    public function test_put_api_book_already_exists_error(): void
+    {
+        $data = [
+            'isbn' => '1112223334445',
+            'title' => 'Book title',
+            'author' => 'Book author',
+            'publisher' => 'Book publisher',
+            'volumes' => 1
+        ];
+        $this->post(route('books.store'), $data);
+
+        $book = Book::where('isbn', '<>', $data['isbn'])->first();
+        $data = [
+            'isbn' => '1112223334445',
+            'title' => 'Book testing title'
+        ];
+
+        $response = $this->put(route('books.update', $book->id), $data);
+        $response->assertStatus(409);
+        assertEquals('Ya existe un libro con esos datos', $response->json()['message']);
     }
 
     public function test_put_api_book_try_null_data(): void
