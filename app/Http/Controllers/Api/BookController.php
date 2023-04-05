@@ -1,12 +1,13 @@
 <?php
 namespace App\Http\Controllers\Api;
 
+use \Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BookRequest;
 use App\Http\Requests\BookUpdateRequest;
-
 use App\Models\Book;
-use Illuminate\Database\QueryException;
 
 class BookController extends Controller
 {
@@ -52,7 +53,7 @@ class BookController extends Controller
         $book = Book::find($id);
         if (!$book) {
             return response()->json([
-                'error' => 'El libro que solicitas no existe'
+                'message' => 'El libro que solicitas no existe'
             ], 404);
         }
 
@@ -92,10 +93,31 @@ class BookController extends Controller
             $book = Book::findOrFail($id);
             $book->delete();
             return response()->json(['message' => 'El libro ha sido eliminado correctamente'], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json(['error' => 'El libro que intenta eliminar no existe'], 404);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'El libro que intenta eliminar no existe',
+                'error' => $e->getMessage()
+            ], 404);
         } catch (\Throwable $e) {
-            return response()->json(['error' => 'Se produjo un error al eliminar el libro'], 500);
+            return response()->json([
+                'message' => 'Se produjo un error al eliminar el libro',
+                'error' => $e->getMessage()
+            ], 500);
         }
+    }
+
+    public function getBookCopies(int $id)
+    {
+        $book = Book::find($id);
+        if (!$book) {
+            return response()->json([
+                'message' => 'El libro del que buscas copias no existe'
+            ], 404);
+        }
+
+        return response()->json([
+            'book' => $book,
+            'book_copies' => $book->bookCopies()->get()
+        ], 200);
     }
 }

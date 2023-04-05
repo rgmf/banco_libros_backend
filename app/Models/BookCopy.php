@@ -8,4 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class BookCopy extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'barcode',
+        'comment',
+        'book_id',
+        'status_id'
+    ];
+
 }

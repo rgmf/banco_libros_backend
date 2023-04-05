@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('book_copies', function (Blueprint $table) {
             $table->id();
             $table->string('barcode', 13)->unique();
-            $table->text('comment');
+            $table->text('comment')->nullable();
             $table->foreignId('book_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('status_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->timestamps();

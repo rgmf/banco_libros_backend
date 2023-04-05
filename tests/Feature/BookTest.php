@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Artisan;
 use function PHPUnit\Framework\assertCount;
 use function PHPUnit\Framework\assertEquals;
 use function PHPUnit\Framework\assertNotNull;
-use function PHPUnit\Framework\assertTrue;
+use function Tests\assertBook;
 
 use App\Models\Book;
 use Tests\TestCase;
@@ -29,14 +29,7 @@ class BookTest extends TestCase
         $response->assertJsonCount(5);
 
         foreach ($response->json() as $arrayObj) {
-            assertTrue(array_key_exists('id', $arrayObj));
-            assertTrue(array_key_exists('isbn', $arrayObj));
-            assertTrue(array_key_exists('title', $arrayObj));
-            assertTrue(array_key_exists('author', $arrayObj));
-            assertTrue(array_key_exists('publisher', $arrayObj));
-            assertTrue(array_key_exists('volumes', $arrayObj));
-            assertTrue(array_key_exists('created_at', $arrayObj));
-            assertTrue(array_key_exists('updated_at', $arrayObj));
+            assertBook($arrayObj);
         }
     }
 
@@ -49,14 +42,7 @@ class BookTest extends TestCase
 
         $arrayObj = $response->json()['book'];
 
-        assertTrue(array_key_exists('id', $arrayObj));
-        assertTrue(array_key_exists('isbn', $arrayObj));
-        assertTrue(array_key_exists('title', $arrayObj));
-        assertTrue(array_key_exists('author', $arrayObj));
-        assertTrue(array_key_exists('publisher', $arrayObj));
-        assertTrue(array_key_exists('volumes', $arrayObj));
-        assertTrue(array_key_exists('created_at', $arrayObj));
-        assertTrue(array_key_exists('updated_at', $arrayObj));
+        assertBook($arrayObj);
     }
 
     public function test_get_api_book_not_exists(): void
@@ -72,7 +58,7 @@ class BookTest extends TestCase
         $response = $this->get(route('books.show', $idNotExists));
         $response->assertStatus(404);
 
-        assertEquals('El libro que solicitas no existe', $response->json()['error']);
+        assertEquals('El libro que solicitas no existe', $response->json()['message']);
     }
 
     public function test_delete_api_book(): void
@@ -96,7 +82,7 @@ class BookTest extends TestCase
         $this->delete(route('books.destroy', $book->id));
         $response = $this->delete(route('books.destroy', $book->id));
         $response->assertStatus(404);
-        assertEquals('El libro que intenta eliminar no existe', $response->json()['error']);
+        assertEquals('El libro que intenta eliminar no existe', $response->json()['message']);
     }
 
     public function test_post_api_book(): void
@@ -117,14 +103,7 @@ class BookTest extends TestCase
         assertEquals('Libro insertado correctamente', $response->json()['message']);
         $arrayObj = $response->json()['book'];
 
-        assertTrue(array_key_exists('id', $arrayObj));
-        assertTrue(array_key_exists('isbn', $arrayObj));
-        assertTrue(array_key_exists('title', $arrayObj));
-        assertTrue(array_key_exists('author', $arrayObj));
-        assertTrue(array_key_exists('publisher', $arrayObj));
-        assertTrue(array_key_exists('volumes', $arrayObj));
-        assertTrue(array_key_exists('created_at', $arrayObj));
-        assertTrue(array_key_exists('updated_at', $arrayObj));
+        assertBook($arrayObj);
 
         $countEnd = Book::get()->count();
         assertEquals($countStart + 1, $countEnd);
@@ -180,14 +159,7 @@ class BookTest extends TestCase
         assertEquals('Libro actualizado correctamente', $response->json()['message']);
         $arrayObj = $response->json()['book'];
 
-        assertTrue(array_key_exists('id', $arrayObj));
-        assertTrue(array_key_exists('isbn', $arrayObj));
-        assertTrue(array_key_exists('title', $arrayObj));
-        assertTrue(array_key_exists('author', $arrayObj));
-        assertTrue(array_key_exists('publisher', $arrayObj));
-        assertTrue(array_key_exists('volumes', $arrayObj));
-        assertTrue(array_key_exists('created_at', $arrayObj));
-        assertTrue(array_key_exists('updated_at', $arrayObj));
+        assertBook($arrayObj);
     }
 
     public function test_put_api_book_already_exists_error(): void
