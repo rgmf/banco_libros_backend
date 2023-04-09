@@ -1,7 +1,6 @@
 <?php
 namespace Tests\Feature;
 
-use App\Models\Status;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
 
@@ -21,7 +20,5 @@ class StatusTest extends TestCase
     {
         $response = $this->get(route('statuses.index'));
         $response->assertStatus(200);
-
-        dump($response->json());
     }
 }

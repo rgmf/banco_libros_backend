@@ -26,10 +26,12 @@ class BookTest extends TestCase
     {
         $response = $this->get(route('books.index'));
         $response->assertStatus(200);
-        $response->assertJsonCount(5);
 
-        foreach ($response->json() as $arrayObj) {
-            assertBook($arrayObj);
+        $data = $response->json()['data'];
+        assertEquals(5, count($data));
+
+        foreach ($data as $book) {
+            assertBook($book);
         }
     }
 
@@ -38,9 +40,8 @@ class BookTest extends TestCase
         $book = Book::get()->first();
         $response = $this->get(route('books.show', $book->id));
         $response->assertStatus(200);
-        $response->assertJsonIsObject();
 
-        $arrayObj = $response->json()['book'];
+        $arrayObj = $response->json()['data'];
 
         assertBook($arrayObj);
     }
@@ -58,7 +59,7 @@ class BookTest extends TestCase
         $response = $this->get(route('books.show', $idNotExists));
         $response->assertStatus(404);
 
-        assertEquals('El libro que solicitas no existe', $response->json()['message']);
+        assertEquals('El libro que solicitas no existe', $response->json()['data']['message']);
     }
 
     public function test_delete_api_book(): void
@@ -70,7 +71,7 @@ class BookTest extends TestCase
 
         $response = $this->delete(route('books.destroy', $books->last()->id));
         $response->assertStatus(200);
-        assertEquals('El libro ha sido eliminado correctamente', $response->json()['message']);
+        assertEquals('El libro ha sido eliminado correctamente', $response->json()['data']['message']);
 
         assertCount($books->count() - 2, Book::get());
     }
@@ -82,7 +83,7 @@ class BookTest extends TestCase
         $this->delete(route('books.destroy', $book->id));
         $response = $this->delete(route('books.destroy', $book->id));
         $response->assertStatus(404);
-        assertEquals('El libro que intenta eliminar no existe', $response->json()['message']);
+        assertEquals('El libro que intentas eliminar no existe', $response->json()['data']['message']);
     }
 
     public function test_post_api_book(): void
@@ -100,8 +101,7 @@ class BookTest extends TestCase
         $response->assertStatus(201);
         $response->assertJsonIsObject();
 
-        assertEquals('Libro insertado correctamente', $response->json()['message']);
-        $arrayObj = $response->json()['book'];
+        $arrayObj = $response->json()['data'];
 
         assertBook($arrayObj);
 
@@ -122,7 +122,7 @@ class BookTest extends TestCase
         $this->post(route('books.store'), $data);
         $response = $this->post(route('books.store'), $data);
         $response->assertStatus(409);
-        assertEquals('El libro ya existe', $response->json()['message']);
+        assertEquals('El libro ya existe', $response->json()['data']['message']);
     }
 
     public function test_post_api_book_error_required_data(): void
@@ -156,8 +156,7 @@ class BookTest extends TestCase
         $response->assertStatus(201);
         assertEquals('Book testing title', Book::find($book->id)->title);
 
-        assertEquals('Libro actualizado correctamente', $response->json()['message']);
-        $arrayObj = $response->json()['book'];
+        $arrayObj = $response->json()['data'];
 
         assertBook($arrayObj);
     }
@@ -181,7 +180,7 @@ class BookTest extends TestCase
 
         $response = $this->put(route('books.update', $book->id), $data);
         $response->assertStatus(409);
-        assertEquals('Ya existe un libro con esos datos', $response->json()['message']);
+        assertEquals('Ya existe un libro con esos datos', $response->json()['data']['message']);
     }
 
     public function test_put_api_book_try_null_data(): void

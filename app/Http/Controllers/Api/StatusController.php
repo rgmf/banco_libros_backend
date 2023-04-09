@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\StatusCollection;
 use App\Models\Status;
 
 class StatusController extends Controller
 {
     public function index()
     {
-        return Status::get();
+        $statuses = Status::get();
+        return new StatusCollection($statuses);
     }
 }

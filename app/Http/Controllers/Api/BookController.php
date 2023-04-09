@@ -7,6 +7,10 @@ use Illuminate\Database\QueryException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BookRequest;
 use App\Http\Requests\BookUpdateRequest;
+use App\Http\Resources\BookCollection;
+use App\Http\Resources\BookResource;
+use App\Http\Resources\ErrorResource;
+use App\Http\Resources\InfoResource;
 use App\Models\Book;
 
 class BookController extends Controller
@@ -14,7 +18,7 @@ class BookController extends Controller
     public function index()
     {
         $books = Book::get();
-        return $books;
+        return new BookCollection($books);
     }
 
     public function store(BookRequest $request)
@@ -30,36 +34,22 @@ class BookController extends Controller
         } catch (QueryException $exception) {
             $error_code = $exception->errorInfo[1];
             if ($error_code == 1062) {
-                return response()->json([
-                    'message' => 'El libro ya existe',
-                    'error' => $exception->getMessage()
-                ], 409);
+                return new ErrorResource(409, 'El libro ya existe', $exception);
             } else {
-                return response()->json([
-                    'message' => 'Error al insertar el libro',
-                    'error' => $exception->getMessage()
-                ], 500);
+                return new ErrorResource(500, 'Error al insertar el libro', $exception);
             }
         }
 
-        return response()->json([
-            'message' => 'Libro insertado correctamente',
-            'book' => $book
-        ], 201);
+        return new BookResource($book, 201);
     }
 
     public function show(int $id)
     {
         $book = Book::find($id);
         if (!$book) {
-            return response()->json([
-                'message' => 'El libro que solicitas no existe'
-            ], 404);
+            return new ErrorResource(404, 'El libro que solicitas no existe');
         }
-
-        return response()->json([
-            'book' => $book
-        ], 200);
+        return new BookResource($book);
     }
 
     public function update(BookUpdateRequest $request, Book $book)
@@ -67,22 +57,13 @@ class BookController extends Controller
         try {
             $book->fill($request->only($request->keys()));
             $book->save();
-            return response()->json([
-                'message' => 'Libro actualizado correctamente',
-                'book' => $book
-            ], 201);
+            return new BookResource($book, 201);
         } catch (QueryException $exception) {
             $error_code = $exception->errorInfo[1];
             if ($error_code == 1062) {
-                return response()->json([
-                    'message' => 'Ya existe un libro con esos datos',
-                    'error' => $exception->getMessage()
-                ], 409);
+                return new ErrorResource(409, 'Ya existe un libro con esos datos', $exception);
             } else {
-                return response()->json([
-                    'message' => 'Error al actualizar el libro',
-                    'error' => $exception->getMessage()
-                ], 500);
+                return new ErrorResource(500, 'Error al actualizar el libro', $exception);
             }
         }
     }
@@ -92,32 +73,25 @@ class BookController extends Controller
         try {
             $book = Book::findOrFail($id);
             $book->delete();
-            return response()->json(['message' => 'El libro ha sido eliminado correctamente'], 200);
+            return new InfoResource(200, 'El libro ha sido eliminado correctamente');
         } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'El libro que intenta eliminar no existe',
-                'error' => $e->getMessage()
-            ], 404);
+            return new ErrorResource(404, 'El libro que intentas eliminar no existe', $e);
         } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Se produjo un error al eliminar el libro',
-                'error' => $e->getMessage()
-            ], 500);
+            return new ErrorResource(500, 'Se produjo un error al eliminar el libro', $e);
         }
     }
 
     public function getBookCopies(int $id)
     {
-        $book = Book::find($id);
+        $book = Book::with('bookCopies')->find($id);
         if (!$book) {
-            return response()->json([
-                'message' => 'El libro del que buscas copias no existe'
-            ], 404);
+            return new ErrorResource(404, 'El libro del que buscas copias no existe');
         }
+        return new BookResource($book);
 
-        return response()->json([
+        /*return response()->json([
             'book' => $book,
             'book_copies' => $book->bookCopies()->get()
-        ], 200);
+        ], 200);*/
     }
 }

@@ -30,19 +30,19 @@ class BookCopyTest extends TestCase
         $response = $this->get(route('books.copies', $book->id));
         $response->assertStatus(200);
 
-        assertTrue(array_key_exists('book', $response->json()));
-        assertTrue(array_key_exists('book_copies', $response->json()));
+        assertTrue(array_key_exists('data', $response->json()));
+        assertTrue(array_key_exists('book_copies', $response->json()['data']));
 
-        assertBook($response->json()['book']);
+        assertBook($response->json()['data']);
 
-        assertTrue(count($response->json()['book_copies']) > 0);
-        foreach ($response->json()['book_copies'] as $bookCopy) {
+        assertTrue(count($response->json()['data']['book_copies']) > 0);
+        foreach ($response->json()['data']['book_copies'] as $bookCopy) {
             assertBookCopy($bookCopy);
         }
 
         assertEquals(
-            $response->json()['book']['id'],
-            $response->json()['book_copies'][0]['book_id']
+            $response->json()['data']['id'],
+            $response->json()['data']['book_copies'][0]['book_id']
         );
     }
 

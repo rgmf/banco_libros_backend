@@ -1,3 +1,6 @@
+* Para todos los endpoints
+Se devuelve un array JSON en el que se tiene, al menos, un índice llamado 'data' que es, a su vez, un array, con al menos, un índice llamado 'code' que contiene el código HTTP de la respuesta.
+
 * GET    /api/books
 ** Caso de éxito
 - Código de estado :: 200
