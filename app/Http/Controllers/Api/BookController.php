@@ -88,10 +88,5 @@ class BookController extends Controller
             return new ErrorResource(404, 'El libro del que buscas copias no existe');
         }
         return new BookResource($book);
-
-        /*return response()->json([
-            'book' => $book,
-            'book_copies' => $book->bookCopies()->get()
-        ], 200);*/
     }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\CodebarGenerator;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\BookCopyCollection;
+use App\Http\Resources\ErrorResource;
 use App\Models\Book;
 use App\Models\BookCopy;
 use App\Models\Status;
@@ -19,16 +21,12 @@ class BookCopyController extends Controller
     {
         $book = Book::find($bookId);
         if (!$book) {
-            return response()->json([
-                'message' => 'El libro del que quieres crear copias no existe'
-            ], 404);
+            return new ErrorResource(404, 'El libro del que quieres crear copias no existe');
         }
 
         $status = Status::find($statusId);
         if (!$status) {
-            return response()->json([
-                'message' => 'El estado indicado para los libros no existe'
-            ], 404);
+            return new ErrorResource(404, 'El estado indicado para los libros no existe');
         }
 
         $bookCopies = [];
@@ -44,9 +42,6 @@ class BookCopyController extends Controller
             ]);
         }
 
-        return response()->json([
-            'message' => 'Copias del libro creadas correctamente',
-            'book_copies' => $bookCopies
-        ], 200);
+        return new BookCopyCollection($bookCopies);
     }
 }

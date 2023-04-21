@@ -55,9 +55,12 @@ class BookCopyTest extends TestCase
         $response = $this->post(route('bookcopies.store', [$book->id, $count, $status->id]));
         $response->assertStatus(200);
 
-        $bookCopies = $response->json()['book_copies'];
+        $bookCopies = $response->json()['data'];
+        foreach ($bookCopies as $bookCopy) {
+            assertBookCopy($bookCopy);
+        }
+
         $barcodes = array_filter(array_map(fn($i) => $i['barcode'], $bookCopies), fn($i) => strlen($i) == 13);
-        assertEquals('Copias del libro creadas correctamente', $response->json()['message']);
         assertTrue(count($bookCopies) == $count);
         assertTrue(count($bookCopies) == count(array_unique($barcodes)));
     }
@@ -72,7 +75,7 @@ class BookCopyTest extends TestCase
         $response = $this->post(route('bookcopies.store', [$bookId, $count, $statusId]));
         $response->assertStatus(404);
 
-        assertEquals('El libro del que quieres crear copias no existe', $response->json()['message']);
+        assertEquals('El libro del que quieres crear copias no existe', $response->json()['data']['message']);
     }
 
     public function test_post_generate_book_copies_status_not_exists(): void
@@ -84,7 +87,7 @@ class BookCopyTest extends TestCase
         $response = $this->post(route('bookcopies.store', [$bookId, $count, $statusId]));
         $response->assertStatus(404);
 
-        assertEquals('El estado indicado para los libros no existe', $response->json()['message']);
+        assertEquals('El estado indicado para los libros no existe', $response->json()['data']['message']);
     }
 
 }

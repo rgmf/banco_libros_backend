@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\BookController;
 use App\Http\Controllers\Api\BookCopyController;
 use App\Http\Controllers\Api\StatusController;
+use App\Http\Controllers\Api\StudentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,3 +35,6 @@ Route::post('books/{book_id}/copies/{count}/status/{status_id}', [BookCopyContro
     ->name('bookcopies.store');
 
 Route::get('statuses', [StatusController::class, 'index'])->name('statuses.index');
+
+Route::apiResource('students', StudentController::class)->only(['index']);
+Route::post('students/bulk', [StudentController::class, 'storeBulk'])->name('students.storebulk');
