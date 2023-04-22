@@ -16,6 +16,6 @@ class CohortCollection extends ResourceCollection
     {
         return [
             'data' => $this->collection
-        ]
+        ];
     }
 }

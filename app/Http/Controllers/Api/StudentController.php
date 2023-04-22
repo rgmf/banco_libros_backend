@@ -13,7 +13,7 @@ class StudentController extends Controller
 {
     public function index()
     {
-        $students = Student::get();
+        $students = Student::with('cohort')->get();
         return new StudentCollection($students);
     }
 

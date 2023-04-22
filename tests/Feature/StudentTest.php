@@ -20,7 +20,7 @@ class StudentTest extends TestCase
         Artisan::call('db:seed');
     }
 
-    public function test_get_api_books(): void
+    public function test_get_api_students(): void
     {
         $response = $this->get(route('students.index'));
         $response->assertStatus(200);
@@ -34,6 +34,9 @@ class StudentTest extends TestCase
             assertTrue(array_key_exists('lastname1', $student));
             assertTrue(array_key_exists('lastname2', $student));
             assertTrue(array_key_exists('cohort_id', $student));
+            assertTrue(array_key_exists('cohort', $student));
+            assertTrue(array_key_exists('id', $student['cohort']));
+            assertTrue(array_key_exists('name', $student['cohort']));
         }
     }
 

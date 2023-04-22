@@ -45,7 +45,7 @@ class BulkCohortsRequest extends FormRequest
     public function messages()
     {
         return [
-            'cohorts.required' => 'Tienes que indicr, al menos, un grupo',
+            'cohorts.required' => 'Tienes que indicar, al menos, un grupo',
             'cohorts.*.id.required' => 'El ID del grupo es obligatorio',
             'cohorts.*.name.required' => 'El nombre del grupo es obligatorio'
         ];
