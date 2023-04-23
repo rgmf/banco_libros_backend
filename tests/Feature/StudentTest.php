@@ -69,9 +69,9 @@ class StudentTest extends TestCase
         ];
         $response = $this->post(route('students.storebulk'), $students);
 
-        $response->assertStatus(409);
-        assertEquals('Hay estudiantes que ya existen', $response->json()['data']['message']);
-        assertEquals(count($beginStudents), count(Student::get()));
+        $response->assertStatus(200);
+        assertEquals(1, count($response->json()['data']));
+        assertEquals(count($beginStudents) + 1, count(Student::get()));
     }
 
     public function test_post_api_students_bulk_required_error(): void

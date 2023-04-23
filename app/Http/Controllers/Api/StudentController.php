@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BulkStudentsRequest;
-use App\Http\Resources\ErrorResource;
 use App\Http\Resources\StudentCollection;
 use App\Models\Student;
 use Illuminate\Database\QueryException;
@@ -19,18 +18,18 @@ class StudentController extends Controller
 
     public function storeBulk(BulkStudentsRequest $request)
     {
-        try {
-            $students = $request->input('students');
-            Student::insert($students);
-        } catch (QueryException $exception) {
-            $error_code = $exception->errorInfo[1];
-            if ($error_code == 1062) {
-                return new ErrorResource(409, 'Hay estudiantes que ya existen', $exception);
-            } else {
-                return new ErrorResource(500, 'Error al insertar los estudiantes', $exception);
+        $students = $request->input('students');
+        $studentsInserted = [];
+
+        foreach ($students as $student) {
+            try {
+                $student = Student::create($student);
+                $student->load('cohort');
+                $studentsInserted[] = $student;
+            } catch (QueryException $exception) {
             }
         }
 
-        return new StudentCollection($students);
+        return new StudentCollection($studentsInserted);
     }
 }
