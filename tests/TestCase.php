@@ -2,6 +2,7 @@
 namespace Tests;
 
 require_once 'AssertBook.php';
+require_once 'AssertStudent.php';
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;

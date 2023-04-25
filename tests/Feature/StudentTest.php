@@ -6,6 +6,7 @@ use App\Models\Student;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
+use function Tests\assertStudent;
 
 use function PHPUnit\Framework\assertEquals;
 use function PHPUnit\Framework\assertTrue;
@@ -39,6 +40,34 @@ class StudentTest extends TestCase
             assertTrue(array_key_exists('name', $student['cohort']));
         }
     }
+
+    public function test_get_api_student(): void
+    {
+        $student = Student::get()->first();
+        $response = $this->get(route('students.show', $student->id));
+        $response->assertStatus(200);
+
+        $arrayObj = $response->json()['data'];
+
+        assertStudent($arrayObj);
+    }
+
+    public function test_get_api_student_not_exists(): void
+    {
+        $students = Student::get();
+        $ids = [];
+        $students->each(function($student) use (&$ids) {
+            $ids[] = $student->id;
+        });
+
+        sort($ids);
+        $idNotExists = $ids[array_key_last($ids)] + 1;
+        $response = $this->get(route('students.show', $idNotExists));
+        $response->assertStatus(404);
+
+        assertEquals('El/la estudiante que solicitas no existe', $response->json()['data']['message']);
+    }
+
 
     public function test_post_api_students_bulk(): void
     {

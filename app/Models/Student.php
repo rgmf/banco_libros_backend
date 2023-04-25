@@ -31,7 +31,7 @@ class Student extends Model
         'name_mother',
         'lastname1_mother',
         'lastname2_mother',
-        'emaiol_mother'
+        'email_mother'
     ];
 
     public function cohort(): BelongsTo

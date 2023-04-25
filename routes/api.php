@@ -39,5 +39,5 @@ Route::get('statuses', [StatusController::class, 'index'])->name('statuses.index
 
 Route::post('cohorts/bulk', [CohortController::class, 'storeBulk'])->name('cohorts.storebulk');
 
-Route::apiResource('students', StudentController::class)->only(['index']);
+Route::apiResource('students', StudentController::class)->only(['index', 'show']);
 Route::post('students/bulk', [StudentController::class, 'storeBulk'])->name('students.storebulk');
