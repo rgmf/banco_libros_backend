@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('book_copy_observation', function (Blueprint $table) {
             $table->id();
-            $table->boolean('checked')->default(false);
             $table->foreignId('book_copy_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('observation_id')
                   ->constrained()

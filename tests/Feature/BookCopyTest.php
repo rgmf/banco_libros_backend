@@ -5,6 +5,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
 
 use App\Models\Book;
+use App\Models\BookCopy;
 use App\Models\Status;
 use Tests\TestCase;
 
@@ -21,6 +22,19 @@ class BookCopyTest extends TestCase
     {
         parent::setUp();
         Artisan::call('db:seed');
+    }
+
+    public function test_get_bookcopy_by_barcode(): void
+    {
+        $bookCopy = BookCopy::get()->first();
+
+        $response = $this->get(route('bookcopies.showbybarcode', $bookCopy->barcode));
+
+        $bookCopy = $response->json()['data'];
+
+        assertBookCopy($bookCopy);
+        assertTrue(array_key_exists('status', $bookCopy));
+        assertTrue(array_key_exists('observations', $bookCopy));
     }
 
     public function test_get_book_copies(): void

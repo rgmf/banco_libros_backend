@@ -6,7 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BookCopyResource extends JsonResource
+class StatusResource extends JsonResource
 {
     private int $code;
 
@@ -25,16 +25,9 @@ class BookCopyResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'barcode' => $this->barcode,
-            'comment' => $this->comment,
-            'book_id' => $this->book_id,
-            'status_id' => $this->status_id,
+            'name' => $this->name,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'status' => $this->whenLoaded('status', function() {
-                return new StatusResource($this->status);
-            }),
-            'observations' => ObservationResource::collection($this->whenLoaded('observations'))
+            'updated_at' => $this->updated_at
         ];
     }
 

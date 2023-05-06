@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\CodebarGenerator;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BookCopyCollection;
+use App\Http\Resources\BookCopyResource;
 use App\Http\Resources\ErrorResource;
 use App\Models\Book;
 use App\Models\BookCopy;
@@ -12,6 +13,18 @@ use App\Models\Status;
 
 class BookCopyController extends Controller
 {
+    public function showByBarcode(int $barcode)
+    {
+        $bookCopy = BookCopy::with('status')
+                  ->with('observations')
+                  ->where('barcode', $barcode)
+                  ->first();
+        if (!$bookCopy) {
+            return new ErrorResource(404, 'La copia del libro que solicitas no existe');
+        }
+        return new BookCopyResource($bookCopy);
+    }
+
     /**
      * Creates $count BookCopy from $bookId with status identified by $statusId.
      *
