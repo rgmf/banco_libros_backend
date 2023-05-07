@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\CohortController;
 use App\Http\Controllers\Api\StatusController;
 use App\Http\Controllers\Api\ObservationController;
 use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\LendingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,3 +48,5 @@ Route::post('cohorts/bulk', [CohortController::class, 'storeBulk'])->name('cohor
 
 Route::apiResource('students', StudentController::class)->only(['index', 'show']);
 Route::post('students/bulk', [StudentController::class, 'storeBulk'])->name('students.storebulk');
+
+Route::apiResource('lendings', LendingController::class)->only(['store']);

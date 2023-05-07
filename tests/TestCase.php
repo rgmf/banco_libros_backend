@@ -3,6 +3,7 @@ namespace Tests;
 
 require_once 'AssertBook.php';
 require_once 'AssertStudent.php';
+require_once 'AssertLending.php';
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
