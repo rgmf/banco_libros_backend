@@ -34,7 +34,8 @@ class BookCopyResource extends JsonResource
             'status' => $this->whenLoaded('status', function() {
                 return new StatusResource($this->status);
             }),
-            'observations' => ObservationResource::collection($this->whenLoaded('observations'))
+            'observations' => ObservationResource::collection($this->whenLoaded('observations')),
+            'lendings' => LendingResource::collection($this->whenLoaded('lendings'))
         ];
     }
 

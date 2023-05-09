@@ -17,6 +17,7 @@ class BookCopyController extends Controller
     {
         $bookCopy = BookCopy::with('status')
                   ->with('observations')
+                  ->with('lendings')
                   ->where('barcode', $barcode)
                   ->first();
         if (!$bookCopy) {
