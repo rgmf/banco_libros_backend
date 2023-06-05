@@ -17,5 +17,6 @@ class DatabaseSeeder extends Seeder
         $this->call(CohortsSeeder::class);
         $this->call(StudentsSeeder::class);
         $this->call(AcademicYearsSeeder::class);
+        $this->call(LendingsSeeder::class);
     }
 }

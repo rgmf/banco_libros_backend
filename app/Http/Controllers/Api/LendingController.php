@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Lending;
 use App\Http\Requests\LendingRequest;
+use App\Http\Requests\LendingUpdateRequest;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\LendingCollection;
 use App\Http\Resources\LendingResource;
@@ -108,15 +109,15 @@ class LendingController extends Controller
         }
     }
 
-    public function show(Lending $lending)
+    public function update(LendingUpdateRequest $request, Lending $lending)
     {
-    }
-
-    public function update(LendingRequest $request, Lending $lending)
-    {
-    }
-
-    public function destroy(Lending $lending)
-    {
+        try {
+            $lending->returned_status_id = $request->input('returned_status_id');
+            $lending->returned_date = now();
+            $lending->save();
+            return new LendingResource($lending, 201);
+        } catch (\Exception $e) {
+            return new ErrorResource(500, 'Error al intentar modificar el préstamos');
+        }
     }
 }

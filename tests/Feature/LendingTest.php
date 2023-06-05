@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\AcademicYear;
 use App\Models\BookCopy;
+use App\Models\Lending;
 use App\Models\Observation;
 use App\Models\Student;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 use function PHPUnit\Framework\assertEquals;
+use function PHPUnit\Framework\assertNotNull;
+use function PHPUnit\Framework\assertNull;
 use function PHPUnit\Framework\assertStringStartsWith;
 use function Tests\assertLending;
 
@@ -193,5 +196,24 @@ class LendingTest extends TestCase
         $response = $this->post(route('lendings.store'), $lending);
         $response->assertStatus(500);
         assertStringStartsWith('Error en la transacción de creación de un préstamo: ', $response->json()['data']['message']);
+    }
+
+    public function test_put_lending(): void
+    {
+        $lending = Lending::first();
+        $data = [
+            'returned_status_id' => 1
+        ];
+
+        assertNull($lending->returned_status_id);
+        assertNull($lending->returned_date);
+
+        $response = $this->put(route('lendings.update', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals(1, $editedLending->returned_status_id);
+        assertNotNull($editedLending->returned_date);
     }
 }

@@ -52,7 +52,7 @@ Route::post('cohorts/bulk', [CohortController::class, 'storeBulk'])->name('cohor
 Route::apiResource('students', StudentController::class)->only(['index', 'show']);
 Route::post('students/bulk', [StudentController::class, 'storeBulk'])->name('students.storebulk');
 
-Route::apiResource('lendings', LendingController::class)->only(['store']);
+Route::apiResource('lendings', LendingController::class)->only(['store', 'update']);
 Route::get('lendings/student/{student_id}/index', [LendingController::class, 'indexByStudent'])
     ->where('student_id', '[0-9]+')
     ->name('lendings.indexbystudent');
