@@ -30,14 +30,15 @@ class StudentTest extends TestCase
         assertEquals(5, count($data));
 
         foreach ($data as $student) {
-            assertTrue(array_key_exists('id', $student));
+            assertStudent($student);
+            /*assertTrue(array_key_exists('id', $student));
             assertTrue(array_key_exists('name', $student));
             assertTrue(array_key_exists('lastname1', $student));
             assertTrue(array_key_exists('lastname2', $student));
             assertTrue(array_key_exists('cohort_id', $student));
             assertTrue(array_key_exists('cohort', $student));
             assertTrue(array_key_exists('id', $student['cohort']));
-            assertTrue(array_key_exists('name', $student['cohort']));
+            assertTrue(array_key_exists('name', $student['cohort']));*/
         }
     }
 

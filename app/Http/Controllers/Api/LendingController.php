@@ -7,6 +7,7 @@ use App\Models\Lending;
 use App\Http\Requests\LendingRequest;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\LendingCollection;
+use App\Http\Resources\LendingResource;
 use App\Models\BookCopy;
 use Illuminate\Support\Facades\DB;
 
@@ -14,6 +15,58 @@ class LendingController extends Controller
 {
     public function index()
     {
+    }
+
+    public function indexByStudent(int $studentId)
+    {
+        $lendings = Lending::with('student')
+                  ->with('bookCopy.book')
+                  ->with('bookCopy.status')
+                  ->with('bookCopy.observations')
+                  ->with('academicYear')
+                  ->where('student_id', $studentId)
+                  ->get();
+        if ($lendings->count() == 0) {
+            return new ErrorResource(404, 'No existe préstamo para el estudiante dado');
+        }
+        return new LendingCollection($lendings);
+    }
+
+    public function indexByBookBarcode(int $barcode)
+    {
+        $lendings = Lending::select('lendings.*')
+                  ->join('students', 'lendings.student_id', '=', 'students.id')
+                  ->whereIn('students.id', function ($query) use ($barcode) {
+                      $query->select('student_id')
+                            ->from('lendings')
+                            ->whereIn('book_copy_id', function ($query) use ($barcode) {
+                                $query->select('id')
+                                      ->from('book_copies')
+                                      ->where('barcode', $barcode);
+                            });
+                  })
+                  ->get();
+        if ($lendings->count() == 0) {
+            return new ErrorResource(404, 'No existe préstamo en el que esté el libro con el código de barras dado');
+        }
+        return new LendingCollection($lendings);
+    }
+
+    public function showByBookBarcode(int $barcode)
+    {
+        $lendings = Lending::with('student')
+                  ->with('bookCopy.book')
+                  ->with('bookCopy.status')
+                  ->with('bookCopy.observations')
+                  ->with('academicYear')
+                  ->whereHas('bookCopy', function ($query) use ($barcode) {
+                      $query->where('barcode', $barcode);
+                  })
+                  ->first();
+        if ($lendings->count() == 0) {
+            return new ErrorResource(404, 'No existe préstamo en el que esté el libro con el código de barras dado');
+        }
+        return new LendingResource($lendings);
     }
 
     public function store(LendingRequest $request)

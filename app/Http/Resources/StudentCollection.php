@@ -39,8 +39,8 @@ class StudentCollection extends ResourceCollection
                     'lastname1_mother' => $student->lastname1_mother,
                     'lastname2_mother' => $student->lastname2_mother,
                     'email_mother' => $student->email_mother,
-                    'cohort' => $student->cohort
-
+                    'cohort' => $student->cohort,
+                    'lendings' => $student->lendings
                 ];
             })
         ];

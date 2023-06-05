@@ -19,6 +19,11 @@ class BookCopy extends Model
         'status_id'
     ];
 
+    public function book(): BelongsTo
+    {
+        return $this->belongsTo(Book::class);
+    }
+
     public function status(): BelongsTo
     {
         return $this->belongsTo(Status::class);
@@ -26,7 +31,7 @@ class BookCopy extends Model
 
     public function observations(): BelongsToMany
     {
-        return $this->belongsToMany(Observation::class);
+        return $this->belongsToMany(Observation::class, 'book_copy_observation', 'book_copy_id', 'observation_id');
     }
 
     public function lendings(): HasMany

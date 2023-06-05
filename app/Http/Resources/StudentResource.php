@@ -48,7 +48,8 @@ class StudentResource extends JsonResource
             'email_mother' => $this->email_mother,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'cohort' => $this->cohort
+            'cohort' => $this->cohort,
+            'lendings' => $this->lendings
         ];
     }
 

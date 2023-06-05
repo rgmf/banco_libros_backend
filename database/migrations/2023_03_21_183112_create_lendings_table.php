@@ -29,9 +29,7 @@ return new class extends Migration
             $table->unsignedBigInteger('returned_status_id')->nullable();
             $table->foreign('returned_status_id')
                   ->references('id')->on('statuses')->cascadeOnUpdate()->noActionOnDelete();
-
-            $table->unique(['student_id', 'book_copy_id']);
-            $table->unique(['book_copy_id', 'academic_year_id']);
+            $table->unique(['student_id', 'book_copy_id', 'academic_year_id']);
 
             $table->timestamps();
         });

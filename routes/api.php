@@ -39,6 +39,9 @@ Route::post('books/{book_id}/copies/{count}/status/{status_id}', [BookCopyContro
     ->where('count', '[0-9]+')
     ->where('status_id', '[0-9]+')
     ->name('bookcopies.store');
+Route::put('bookcopies/{id}', [BookCopyController::class, 'update'])
+    ->where('id', '[0-9]+')
+    ->name('bookcopies.update');
 
 Route::get('statuses', [StatusController::class, 'index'])->name('statuses.index');
 
@@ -50,3 +53,12 @@ Route::apiResource('students', StudentController::class)->only(['index', 'show']
 Route::post('students/bulk', [StudentController::class, 'storeBulk'])->name('students.storebulk');
 
 Route::apiResource('lendings', LendingController::class)->only(['store']);
+Route::get('lendings/student/{student_id}/index', [LendingController::class, 'indexByStudent'])
+    ->where('student_id', '[0-9]+')
+    ->name('lendings.indexbystudent');
+Route::get('lendings/book/barcode/{barcode}/index', [LendingController::class, 'indexByBookBarcode'])
+    ->where('barcode', '[0-9]{13}')
+    ->name('lendings.indexbybookbarcode');
+Route::get('lendings/book/barcode/{barcode}/show', [LendingController::class, 'showByBookBarcode'])
+    ->where('barcode', '[0-9]{13}')
+    ->name('lendings.showbybookbarcode');

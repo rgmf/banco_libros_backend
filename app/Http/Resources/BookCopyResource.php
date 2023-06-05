@@ -31,6 +31,9 @@ class BookCopyResource extends JsonResource
             'status_id' => $this->status_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'book' => $this->whenLoaded('book', function() {
+                return new BookResource($this->book);
+            }),
             'status' => $this->whenLoaded('status', function() {
                 return new StatusResource($this->status);
             }),

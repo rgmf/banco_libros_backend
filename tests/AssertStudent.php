@@ -28,4 +28,5 @@ function assertStudent(array $student): void
     assertTrue(array_key_exists('lastname2_mother', $student));
     assertTrue(array_key_exists('email_mother', $student));
     assertTrue(array_key_exists('cohort', $student));
+    assertTrue(array_key_exists('lendings', $student));
 }
