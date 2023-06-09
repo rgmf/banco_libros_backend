@@ -21,10 +21,10 @@ class BookCopyController extends Controller
     {
         $bookCopy = BookCopy::with('status')
                   ->with('observations')
-                  ->with('lendings')
+                  ->with('lendings.student')
                   ->where('barcode', $barcode)
                   ->first();
-        if (!$bookCopy) {
+       if (!$bookCopy) {
             return new ErrorResource(404, 'La copia del libro que solicitas no existe');
         }
         return new BookCopyResource($bookCopy);

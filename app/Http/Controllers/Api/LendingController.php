@@ -26,6 +26,7 @@ class LendingController extends Controller
                   ->with('bookCopy.observations')
                   ->with('academicYear')
                   ->where('student_id', $studentId)
+                  ->where('returned_date', null)
                   ->get();
         if ($lendings->count() == 0) {
             return new ErrorResource(404, 'No existe préstamo para el estudiante dado');
@@ -37,6 +38,7 @@ class LendingController extends Controller
     {
         $lendings = Lending::select('lendings.*')
                   ->join('students', 'lendings.student_id', '=', 'students.id')
+                  ->where('returned_date', null)
                   ->whereIn('students.id', function ($query) use ($barcode) {
                       $query->select('student_id')
                             ->from('lendings')
@@ -95,7 +97,7 @@ class LendingController extends Controller
                 ]);
                 $lendingItem->save();
 
-                $lendingItem->loadMissing(['student', 'bookCopy', 'academicYear']);
+                $lendingItem->loadMissing(['student', 'bookCopy', 'bookCopy.observations', 'bookCopy.status', 'academicYear']);
 
                 $lending[] = $lendingItem;
             }

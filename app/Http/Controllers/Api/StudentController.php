@@ -14,13 +14,13 @@ class StudentController extends Controller
 {
     public function index()
     {
-        $students = Student::with('cohort')->with('lendings')->get();
+        $students = Student::with('cohort')->with('lendings.bookCopy')->get();
         return new StudentCollection($students);
     }
 
     public function show(int $id)
     {
-        $student = Student::with('cohort')->find($id);
+        $student = Student::with('cohort')->with('lendings.bookCopy')->find($id);
         if (!$student) {
             return new ErrorResource(404, 'El/la estudiante que solicitas no existe');
         }
