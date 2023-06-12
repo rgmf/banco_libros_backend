@@ -12,10 +12,10 @@ class CohortsSeeder extends Seeder
      */
     public function run(): void
     {
-        $cohort = new Cohort();
-        $cohort->id = 123123123;
-        $cohort->name = '1INVENTADO';
-        $cohort->save();
+        $cohort = Cohort::create([
+            'id' => 1,
+            'name' => '1ESOA'
+        ]);
         //Cohort::factory()->count(1)->create();
     }
 }
