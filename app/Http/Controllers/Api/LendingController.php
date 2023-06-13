@@ -11,6 +11,7 @@ use App\Http\Resources\LendingCollection;
 use App\Http\Resources\LendingResource;
 use App\Models\BookCopy;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class LendingController extends Controller
 {
@@ -81,7 +82,29 @@ class LendingController extends Controller
             $bookCopies = $request->input('book_copies');
             $lending = [];
 
+            $academicYearId = $request->input('academic_year_id');
+            $studentId = $request->input('student_id');
+
+            // Students with other years lendings cannot receive new lendings this academic year
+            $activeLendingsOtherYears = Lending::where('student_id', $studentId)
+                ->where('academic_year_id', '<>', $academicYearId)
+                ->whereNull('returned_date')
+                ->first();
+            if ($activeLendingsOtherYears) {
+                return new ErrorResource(500, 'El estudiante tiene préstamos abiertos de otros cursos académicos');
+            }
+
             foreach ($bookCopies as $bookCopyData) {
+                // Book already lended and not returned?
+                $existingLending = Lending::where('book_copy_id', $bookCopyData['id'])
+                    ->whereNull('returned_date')
+                    ->first();
+
+                if ($existingLending) {
+                    DB::rollBack();
+                    return new ErrorResource(409, 'El libro ya está prestado');
+                }
+
                 $bookCopy = BookCopy::findOrFail($bookCopyData['id']);
                 $bookCopy->status_id = $bookCopyData['status_id'];
                 $bookCopy->observations()->sync(array_key_exists('observations_id', $bookCopyData) ? $bookCopyData['observations_id'] : []);
@@ -89,9 +112,9 @@ class LendingController extends Controller
 
                 $lendingItem = new Lending();
                 $lendingItem->fill([
-                    'student_id' => $request->input('student_id'),
+                    'student_id' => $studentId,
                     'book_copy_id' => $bookCopy->id,
-                    'academic_year_id' => $request->input('academic_year_id'),
+                    'academic_year_id' => $academicYearId,
                     'lending_date' => now(),
                     'lending_status_id' => $bookCopyData['status_id'],
                 ]);
@@ -105,6 +128,14 @@ class LendingController extends Controller
             DB::commit();
 
             return new LendingCollection($lending);
+        } catch (QueryException $e) {
+            DB::rollBack();
+            $error_code = $e->errorInfo[1];
+            if ($error_code == 1062) {
+                return new ErrorResource(409, 'El libro ya está prestado', $e);
+            } else {
+                return new ErrorResource(500, 'Error al prestar el libro', $e);
+            }
         } catch (\Exception $e) {
             DB::rollback();
             return new ErrorResource(500, 'Error en la transacción de creación de un préstamo: ' . $e->getMessage());
@@ -119,7 +150,7 @@ class LendingController extends Controller
             $lending->save();
             return new LendingResource($lending, 201);
         } catch (\Exception $e) {
-            return new ErrorResource(500, 'Error al intentar modificar el préstamos');
+            return new ErrorResource(500, 'Error al intentar modificar el préstamos', $e);
         }
     }
 }

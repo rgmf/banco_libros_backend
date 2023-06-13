@@ -76,8 +76,8 @@ class StudentTest extends TestCase
 
         $students = [
             'students' => [
-                ['nia' => '11111111', 'name' => 'Name', 'lastname1' => 'Lastname 1'],
-                ['nia' => '22222222', 'name' => 'Name', 'lastname1' => 'Lastname 1']
+                ['nia' => '10101010', 'name' => 'Name', 'lastname1' => 'Lastname 1'],
+                ['nia' => '20202020', 'name' => 'Name', 'lastname1' => 'Lastname 1']
             ]
         ];
         $response = $this->post(route('students.storebulk'), $students);
@@ -94,7 +94,7 @@ class StudentTest extends TestCase
         $students = [
             'students' => [
                 ['nia' => $beginStudents[0]['nia'], 'name' => 'Name', 'lastname1' => 'Lastname 1'],
-                ['nia' => '22222222', 'name' => 'Name', 'lastname1' => 'Lastname 1']
+                ['nia' => '20202020', 'name' => 'Name', 'lastname1' => 'Lastname 1']
             ]
         ];
         $response = $this->post(route('students.storebulk'), $students);

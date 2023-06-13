@@ -109,7 +109,7 @@ class BookCopyTest extends TestCase
     public function test_put_update_status(): void
     {
         $bookCopy = BookCopy::first();
-        $status = Status::orderBy('id', 'asc')->first();
+        $status = Status::orderBy('id', 'desc')->first();
         $newId = $bookCopy->status_id + 1 > $status->id ? $bookCopy->status_id - 1 : $bookCopy->status_id + 1;
         $todayDate = now();
         $data = [

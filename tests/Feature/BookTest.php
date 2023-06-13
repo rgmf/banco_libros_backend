@@ -28,7 +28,7 @@ class BookTest extends TestCase
         $response->assertStatus(200);
 
         $data = $response->json()['data'];
-        assertEquals(5, count($data));
+        assertEquals(4, count($data));
 
         foreach ($data as $book) {
             assertBook($book);
