@@ -1,0 +1,21 @@
+* Para todos los endpoints
+Se devuelve un array JSON en el que se tiene, al menos, un índice llamado 'data' que es, a su vez, un array, con al menos, un índice llamado 'code' que contiene el código HTTP de la respuesta.
+
+* GET    /api/books
+** Caso de éxito
+- Código de estado :: 200
+- Datos ::
+Devuelve el estado 200 en caso de éxito
+Devuelve el estado 404 en caso de error (no existe el elemento a borrar)
+* GET    /api/books/{id}
+Devuelve el estado 200 en caso de éxito
+Devuelve el estado 404 en caso de error (no existe el elemento a borrar)
+* POST   /api/books
+Devuelve el estado 201 en caso de éxito con un array que contiene un 'message' y un 'book' (con el objeto insertado).
+Varios: dependiendo del error y el caso: 422, 500, 404... Si devuelve 422 se tiene un resultado de vuelta JSOn con un 'message' y un 'errors' que contiene un array con los errores
+* PUT    /api/books/{id}
+Devuelve el estado 201 en caso de éxito con un array que contiene un 'message' y un 'book' con el libro actualizado.
+Varios: dependiendo del error y el caso: 422, 500, 404...
+* DELETE /api/books/{id}
+Devuelve el estado 200 en caso de éxito
+Devuelve el estado 404 en caso de error (no existe el elemento a borrar)

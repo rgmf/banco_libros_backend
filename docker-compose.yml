@@ -36,6 +36,18 @@ services:
     volumes:
       - ./bl-mariadbdata:/var/lib/mysql
 
+  bl-mariadb-test:
+    image: mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: "${DB_PASSWORD}"
+      MARIADB_DATABASE: "${DB_DATABASE}"
+      MARIADB_USER: "${DB_USERNAME}"
+      MARIADB_PASSWORD: "${DB_PASSWORD}"
+    networks:
+      - bl-network
+    ports:
+      - "3307:3306"
+
 networks:
   bl-network:
     driver: bridge

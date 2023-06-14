@@ -3,6 +3,14 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Api\BookController;
+use App\Http\Controllers\Api\BookCopyController;
+use App\Http\Controllers\Api\CohortController;
+use App\Http\Controllers\Api\StatusController;
+use App\Http\Controllers\Api\ObservationController;
+use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\LendingController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -17,3 +25,40 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::apiResource('books', BookController::class);
+Route::get('books/{id}/copies', [BookController::class, 'getBookCopies'])
+    ->where('id', '[0-9]+')
+    ->name('books.copies');
+
+Route::get('bookcopies/barcode/{barcode}', [BookCopyController::class, 'showByBarcode'])
+    ->where('barcode', '[0-9]{13}')
+    ->name('bookcopies.showbybarcode');
+Route::post('books/{book_id}/copies/{count}/status/{status_id}', [BookCopyController::class, 'store'])
+    ->where('book_id', '[0-9]+')
+    ->where('count', '[0-9]+')
+    ->where('status_id', '[0-9]+')
+    ->name('bookcopies.store');
+Route::put('bookcopies/{id}', [BookCopyController::class, 'update'])
+    ->where('id', '[0-9]+')
+    ->name('bookcopies.update');
+
+Route::get('statuses', [StatusController::class, 'index'])->name('statuses.index');
+
+Route::get('observations', [ObservationController::class, 'index'])->name('observations.index');
+
+Route::post('cohorts/bulk', [CohortController::class, 'storeBulk'])->name('cohorts.storebulk');
+
+Route::apiResource('students', StudentController::class)->only(['index', 'show']);
+Route::post('students/bulk', [StudentController::class, 'storeBulk'])->name('students.storebulk');
+
+Route::apiResource('lendings', LendingController::class)->only(['store', 'update']);
+Route::get('lendings/student/{student_id}/index', [LendingController::class, 'indexByStudent'])
+    ->where('student_id', '[0-9]+')
+    ->name('lendings.indexbystudent');
+Route::get('lendings/book/barcode/{barcode}/index', [LendingController::class, 'indexByBookBarcode'])
+    ->where('barcode', '[0-9]{13}')
+    ->name('lendings.indexbybookbarcode');
+Route::get('lendings/book/barcode/{barcode}/show', [LendingController::class, 'showByBookBarcode'])
+    ->where('barcode', '[0-9]{13}')
+    ->name('lendings.showbybookbarcode');
