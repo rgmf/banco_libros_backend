@@ -21,7 +21,7 @@ class LendingController extends Controller
 
     public function indexByStudent(int $studentId)
     {
-        $lendings = Lending::with('student')
+        $lendings = Lending::with('student.cohort')
                   ->with('bookCopy.book')
                   ->with('bookCopy.status')
                   ->with('bookCopy.observations')

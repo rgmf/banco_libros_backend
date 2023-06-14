@@ -17,7 +17,7 @@ class BookController extends Controller
 {
     public function index()
     {
-        $books = Book::get();
+        $books = Book::with('grade')->get();
         return new BookCollection($books);
     }
 
@@ -29,8 +29,10 @@ class BookController extends Controller
                 'title' => $request->input('title'),
                 'author' => $request->input('author'),
                 'publisher' => $request->input('publisher'),
-                'volumes' => $request->input('volumes')
+                'volumes' => $request->input('volumes'),
+                'grade_id' => $request->input('grade_id')
             ]);
+            $book->load('grade');
         } catch (QueryException $exception) {
             $error_code = $exception->errorInfo[1];
             if ($error_code == 1062) {
@@ -83,7 +85,7 @@ class BookController extends Controller
 
     public function getBookCopies(int $id)
     {
-        $book = Book::with('bookCopies')->find($id);
+        $book = Book::with('grade')->with('bookCopies')->find($id);
         if (!$book) {
             return new ErrorResource(404, 'El libro del que buscas copias no existe');
         }

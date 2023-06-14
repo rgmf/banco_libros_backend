@@ -6,7 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BookResource extends JsonResource
+class GradeResource extends JsonResource
 {
     private int $code;
 
@@ -25,18 +25,9 @@ class BookResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'isbn' => $this->isbn,
-            'title' => $this->title,
-            'author' => $this->author,
-            'publisher' => $this->publisher,
-            'volumes' => $this->volumes,
-            'grade_id' => $this->grade_id,
-            'grade' => $this->whenLoaded('grade', function() {
-                return new GradeResource($this->grade);
-            }),
+            'name' => $this->name,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'book_copies' => BookCopyResource::collection($this->whenLoaded('bookCopies'))
+            'updated_at' => $this->updated_at
         ];
     }
 

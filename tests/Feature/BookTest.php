@@ -10,6 +10,7 @@ use function PHPUnit\Framework\assertNotNull;
 use function Tests\assertBook;
 
 use App\Models\Book;
+use App\Models\Grade;
 use Tests\TestCase;
 
 class BookTest extends TestCase
@@ -94,7 +95,8 @@ class BookTest extends TestCase
             'title' => 'Book title',
             'author' => 'Book author',
             'publisher' => 'Book publisher',
-            'volumes' => 1
+            'volumes' => 1,
+            'grade_id' => Grade::first()->id
         ];
 
         $response = $this->post(route('books.store'), $data);
@@ -116,7 +118,8 @@ class BookTest extends TestCase
             'title' => 'Book title',
             'author' => 'Book author',
             'publisher' => 'Book publisher',
-            'volumes' => 1
+            'volumes' => 1,
+            'grade_id' => Grade::first()->id
         ];
 
         $this->post(route('books.store'), $data);
@@ -168,7 +171,8 @@ class BookTest extends TestCase
             'title' => 'Book title',
             'author' => 'Book author',
             'publisher' => 'Book publisher',
-            'volumes' => 1
+            'volumes' => 1,
+            'grade_id' => Grade::first()->id
         ];
         $this->post(route('books.store'), $data);
 
