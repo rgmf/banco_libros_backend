@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('author', 256);
             $table->string('publisher', 128);
             $table->unsignedTinyInteger('volumes')->default(1);
+            $table->foreignId('grade_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
         });
     }

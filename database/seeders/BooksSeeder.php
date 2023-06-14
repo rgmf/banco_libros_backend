@@ -15,30 +15,34 @@ class BooksSeeder extends Seeder
         Book::create([
             'id' => 1,
             'isbn' => '1111111111111',
-            'title' => 'Castellano 1º ESO',
+            'title' => 'Castellano',
             'author' => 'Caste Llano',
-            'publisher' => 'Casteditorial'
+            'publisher' => 'Casteditorial',
+            'grade_id' => 1
         ]);
         Book::create([
             'id' => 2,
             'isbn' => '2222222222222',
-            'title' => 'Matemáticas 1º ESO',
+            'title' => 'Matemáticas',
             'author' => 'Mate Máticas',
-            'publisher' => 'Mateditorial'
+            'publisher' => 'Mateditorial',
+            'grade_id' => 1
         ]);
         Book::create([
             'id' => 3,
             'isbn' => '3333333333333',
-            'title' => 'Historia 1º ESO',
+            'title' => 'Historia',
             'author' => 'Histo Ría',
-            'publisher' => 'Histoeditorial'
+            'publisher' => 'Histoeditorial',
+            'grade_id' => 1
         ]);
         Book::create([
             'id' => 4,
             'isbn' => '4444444444444',
-            'title' => 'Informática 1º ESO',
+            'title' => 'Informática',
             'author' => 'Infor Mática',
-            'publisher' => 'Infoeditorial'
+            'publisher' => 'Infoeditorial',
+            'grade_id' => 1
         ]);
         //Book::factory()->count(5)->create();
     }

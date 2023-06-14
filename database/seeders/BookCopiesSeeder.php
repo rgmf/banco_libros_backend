@@ -35,7 +35,12 @@ class BookCopiesSeeder extends Seeder
 
     private function create1ESOBookCopies()
     {
-        $books = Book::orderBy('id')->where('title', 'like', '%1º ESO%')->get();
+        $books = $books = Book::orderBy('id')
+            ->with('grade')
+            ->whereHas('grade', function ($query) {
+                $query->where('name', '1º ESO');
+            })
+            ->get();
         $observations = Observation::get();
 
         // New book copies for all books

@@ -11,6 +11,8 @@ function assertBook(array $book): void
     assertTrue(array_key_exists('author', $book));
     assertTrue(array_key_exists('publisher', $book));
     assertTrue(array_key_exists('volumes', $book));
+    assertTrue(array_key_exists('grade_id', $book));
+    assertTrue(array_key_exists('grade', $book));
     assertTrue(array_key_exists('created_at', $book));
     assertTrue(array_key_exists('updated_at', $book));
 }
