@@ -78,9 +78,30 @@ abstract class TestCase extends BaseTestCase
 
 #+END_SRC
 
+* Execute php artisan into container
+For instance, for fresh database and run add seeders:
+
+#+BEGIN_SRC bash
+docker compose exec bl-app php artisan migrate:fresh --seed
+#+END_SRC
+
+
 * Execute tests into container
 You can create .env.testing file that will be used by Laravel when execute PHPUnit or php artisan test with --env=testing option.
 
 #+BEGIN_SRC bash
 docker compose exec bl-app php artisan test --env=testing
 #+END_SRC
+
+* Execute mariadb into container
+
+#+BEGIN_SRC bash
+docker compose exec bl-mariadb mysql -ubancolibros -pbancolibros bancolibros
+#+END_SRC
+
+* Re-build frontend
+Execute `docker compose` like that:
+
+#+BEGIN_SRC bash
+docker compose up -d --no-deps --build bl-frontend
+#END_SRC
