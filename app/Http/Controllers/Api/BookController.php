@@ -47,7 +47,7 @@ class BookController extends Controller
 
     public function show(int $id)
     {
-        $book = Book::find($id);
+        $book = Book::with('grade')->find($id);
         if (!$book) {
             return new ErrorResource(404, 'El libro que solicitas no existe');
         }
