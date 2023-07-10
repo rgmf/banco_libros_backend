@@ -20,6 +20,7 @@ class BookCopyController extends Controller
     public function showByBarcode(int $barcode)
     {
         $bookCopy = BookCopy::with('status')
+                  ->with('book')
                   ->with('observations')
                   ->with('lendings.student')
                   ->where('barcode', $barcode)

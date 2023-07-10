@@ -107,6 +107,7 @@ class LendingController extends Controller
 
                 $bookCopy = BookCopy::findOrFail($bookCopyData['id']);
                 $bookCopy->status_id = $bookCopyData['status_id'];
+                $bookCopy->comment = $bookCopyData['comment'];
                 $bookCopy->observations()->sync(array_key_exists('observations_id', $bookCopyData) ? $bookCopyData['observations_id'] : []);
                 $bookCopy->save();
 
