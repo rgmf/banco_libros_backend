@@ -12,6 +12,8 @@ use App\Http\Resources\LendingResource;
 use App\Models\BookCopy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
+use App\Jobs\SendEmailJob;
+use Illuminate\Support\Facades\Log;
 
 class LendingController extends Controller
 {
@@ -128,6 +130,8 @@ class LendingController extends Controller
 
             DB::commit();
 
+            $this->dispatchLendingEmail($studentId, $academicYearId);
+
             return new LendingCollection($lending);
         } catch (QueryException $e) {
             DB::rollBack();
@@ -152,6 +156,15 @@ class LendingController extends Controller
             return new LendingResource($lending, 201);
         } catch (\Exception $e) {
             return new ErrorResource(500, 'Error al intentar modificar el préstamos', $e);
+        }
+    }
+
+    private function dispatchLendingEmail($studentId, $academicYearId) {
+        try {
+            dispatch(new SendEmailJob($studentId, $academicYearId));
+        } catch (\Exception $e) {
+            // Registra la excepción en los logs u toma medidas según sea necesario
+            Log::error("Error al enviar el correo electrónico al estudiante identificado con $studentId: " . $e->getMessage());
         }
     }
 }

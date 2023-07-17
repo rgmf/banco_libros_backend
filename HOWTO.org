@@ -78,6 +78,7 @@ abstract class TestCase extends BaseTestCase
 
 #+END_SRC
 
+
 * Execute php artisan into container
 For instance, for fresh database and run add seeders:
 
@@ -96,7 +97,7 @@ docker compose exec bl-app php artisan test --env=testing
 * Execute mariadb into container
 
 #+BEGIN_SRC bash
-docker compose exec bl-mariadb mysql -ubancolibros -pbancolibros bancolibros
+docker compose exec bl-mariadb mariadb -ubancolibros -pbancolibros bancolibros
 #+END_SRC
 
 * Re-build frontend
@@ -104,7 +105,7 @@ Execute `docker compose` like that:
 
 #+BEGIN_SRC bash
 docker compose up -d --no-deps --build bl-frontend
-#END_SRC
+#+END_SRC
 
 * How to know header server send
 If you want to know what headers the server send to the client, then you can use cURL like this:
@@ -114,3 +115,31 @@ curl -I localhost:8080/api/login
 #END_SRC
 
 In that way you could check if `Access-Control-Allow-Origin: *` is coming, for example.
+
+* Configure Laravel to send e-mails
+For example, if you want to use Gmail to send e-mails, you need to set this into .env:
+
+#+BEGIN_SRC env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
+MAIL_USERNAME=bancodelibros@ieslaencanta.com
+MAIL_PASSWORD=herethepassword
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="bancodelibros@ieslaencanta.com"
+MAIL_FROM_NAME="Banco de Libros (IES La Encantá)"
+#+END_SRC
+
+In this app the e-mails are sent using a Job dispatching so in the .env configuration set this:
+
+#+BEGIN_SRC env
+QUEUE_CONNECTION=database
+#+END_SRC
+
+You need to set "Less Secure Apps" in you Gmail account (if you use this e-mail service):
+https://support.google.com/accounts/answer/6010255?hl=en
+
+As I noticed, every once in a while Google disable this option so you have to pay attention to this.
+
+The complete information can be read here:
+https://www.itsolutionstuff.com/post/laravel-10-send-email-using-queue-exampleexample.html
