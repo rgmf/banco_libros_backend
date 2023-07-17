@@ -11,9 +11,8 @@ use App\Http\Resources\BookCollection;
 use App\Http\Resources\BookResource;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\InfoResource;
-use App\Mail\LendingMail;
+use App\Jobs\SendEmailJob;
 use App\Models\Book;
-use Illuminate\Support\Facades\Mail;
 
 class BookController extends Controller
 {
@@ -26,7 +25,7 @@ class BookController extends Controller
     public function store(BookRequest $request)
     {
         try {
-            Mail::to('rgmf@riseup.net')->queue(new LendingMail());
+            dispatch(new SendEmailJob());
             $book = Book::create([
                 'isbn' => $request->input('isbn'),
                 'title' => $request->input('title'),
