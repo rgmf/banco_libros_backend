@@ -72,10 +72,12 @@ class BookCopyController extends Controller
             $bookCopy->fill($request->only('comment', 'status_id'));
             $bookCopy->save();
 
-            $observationsIds = $request->input('observations', []);
-            $observationModels = Observation::whereIn('id', $observationsIds)->get();
+            if ($request->has('observations')) {
+                $observationsIds = $request->input('observations');
+                $observationModels = Observation::whereIn('id', $observationsIds)->get();
 
-            $bookCopy->observations()->sync($observationModels);
+                $bookCopy->observations()->sync($observationModels);
+            }
 
             $bookCopy->load('observations');
 
