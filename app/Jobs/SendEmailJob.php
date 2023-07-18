@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Mail\LendingMail;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -18,16 +17,18 @@ class SendEmailJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct()
-    {
-        //
-    }
+    public function __construct(
+        private int $studentId,
+        private int $academicYearId
+    ) {}
 
     /**
      * Execute the job.
      */
     public function handle(): void
     {
-        Mail::to('rgmf@riseup.net')->send(new LendingMail());
+        Mail::to('rgmf@riseup.net')->send(
+            new LendingMail($this->studentId, $this->academicYearId)
+        );
     }
 }

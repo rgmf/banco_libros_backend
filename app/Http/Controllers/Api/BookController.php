@@ -12,6 +12,8 @@ use App\Http\Resources\BookResource;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\InfoResource;
 use App\Jobs\SendEmailJob;
+use App\Models\AcademicYear;
+use App\Models\Student;
 use App\Models\Book;
 
 class BookController extends Controller
@@ -25,7 +27,7 @@ class BookController extends Controller
     public function store(BookRequest $request)
     {
         try {
-            dispatch(new SendEmailJob());
+            dispatch(new SendEmailJob(Student::first()->id, AcademicYear::first()->id));
             $book = Book::create([
                 'isbn' => $request->input('isbn'),
                 'title' => $request->input('title'),
