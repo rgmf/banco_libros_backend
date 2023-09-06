@@ -8,6 +8,8 @@ use App\Models\Cohort;
 use App\Models\Lending;
 use App\Models\Observation;
 use App\Models\Student;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
@@ -16,16 +18,34 @@ use function PHPUnit\Framework\assertEquals;
 use function PHPUnit\Framework\assertNotNull;
 use function PHPUnit\Framework\assertNull;
 use function PHPUnit\Framework\assertStringStartsWith;
+use function PHPUnit\Framework\assertTrue;
 use function Tests\assertLending;
 
 class LendingTest extends TestCase
 {
     use DatabaseMigrations;
 
+    private $headers;
+
     public function setUp(): void
     {
         parent::setUp();
         Artisan::call('db:seed');
+
+        $token = "testtoken";
+
+        $user = new User();
+        $user->name = "test";
+        $user->email = "test@test.com";
+        $user->password = "test";
+        $user->gdc_token = $token;
+        $user->gdc_token_expiration = Carbon::tomorrow();
+        $user->save();
+
+        $this->headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json'
+        ];
     }
 
     public function test_create_a_lending_with_several_book_copies(): void
@@ -55,12 +75,54 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(200);
 
         $data = $response->json()['data'];
         foreach ($data as $lending) {
             assertLending($lending);
+        }
+    }
+
+    public function test_create_a_lending_with_book_copies_comments(): void
+    {
+        $studentWithNoLendings = Student::create([
+            'nia' => '21212121',
+            'name' => 'No',
+            'lastname1' => 'Lending',
+            'lastname2' => 'Student',
+            'cohort_id' => Cohort::first()->id
+        ]);
+        $academicYear = AcademicYear::first();
+        $bookCopiesArray = BookCopy::doesntHave('lendings')->with('observations')->get()->take(3)->toArray();
+
+        $bookCopiesArrayFiltered = array_map(
+            fn($b) => [
+                'id' => $b['id'],
+                'status_id' => $b['status_id'],
+                'observations_id' => array_map(fn($o) => $o['id'], $b['observations']),
+                'comment' => 'New comment'
+            ],
+            $bookCopiesArray
+        );
+
+        $lending = [
+            'student_id' => $studentWithNoLendings->id,
+            'academic_year_id' => $academicYear->id,
+            'book_copies' => $bookCopiesArrayFiltered
+        ];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
+        $response->assertStatus(200);
+
+        $data = $response->json()['data'];
+        foreach ($data as $lending) {
+            assertLending($lending);
+        }
+
+        foreach ($bookCopiesArrayFiltered as $bookCopyArray) {
+            $b = BookCopy::find($bookCopyArray['id']);
+            assertEquals($b->comment, 'New comment');
         }
     }
 
@@ -86,7 +148,7 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(200);
 
         $data = $response->json()['data'];
@@ -125,7 +187,7 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(409);
 
         $data = $response->json()['data'];
@@ -157,7 +219,7 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(409);
 
         $data = $response->json()['data'];
@@ -193,7 +255,7 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(409);
     }
 
@@ -227,14 +289,14 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(200);
 
         foreach ($response['data'] as $lending) {
             $return = [
                 'returned_status_id' => $lending['book_copy']['status_id']
             ];
-            $response = $this->put(route('lendings.update', $lending['id']), $return);
+            $response = $this->withHeaders($this->headers)->put(route('lendings.update', $lending['id']), $return);
             $response->assertStatus(201);
         }
 
@@ -244,7 +306,7 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $newYearLending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $newYearLending);
         $response->assertStatus(200);
     }
 
@@ -257,7 +319,7 @@ class LendingTest extends TestCase
         $bookCopy = BookCopy::doesntHave('lendings')->first();
 
         $student->lendings()->get()->each(function($lending) {
-            $response = $this->put(route('lendings.update', $lending['id']), ['returned_status_id' => 2]);
+            $response = $this->withHeaders($this->headers)->put(route('lendings.update', $lending['id']), ['returned_status_id' => 2]);
             $response->assertStatus(201);
         });
 
@@ -267,7 +329,7 @@ class LendingTest extends TestCase
             'book_copies' => [['id' => $bookCopy->id, 'status_id' => $bookCopy->status_id]]
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(200);
     }
 
@@ -285,7 +347,7 @@ class LendingTest extends TestCase
             'book_copies' => [['id' => $bookCopy->id, 'status_id' => $bookCopy->status_id]]
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(500);
     }
 
@@ -316,7 +378,7 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(200);
 
         $data = $response->json()['data'];
@@ -351,7 +413,7 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(200);
 
         $data = $response->json()['data'];
@@ -379,7 +441,7 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(422);
         $json = $response->json();
         assertEquals('Error en la validación', $json['message']);
@@ -406,7 +468,7 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(422);
         $json = $response->json();
         assertEquals('Error en la validación', $json['message']);
@@ -437,7 +499,7 @@ class LendingTest extends TestCase
             'book_copies' => $bookCopiesArrayFiltered
         ];
 
-        $response = $this->post(route('lendings.store'), $lending);
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
         $response->assertStatus(500);
         assertStringStartsWith('Error al prestar el libro', $response->json()['data']['message']);
     }
@@ -452,7 +514,7 @@ class LendingTest extends TestCase
         assertNull($lending->returned_status_id);
         assertNull($lending->returned_date);
 
-        $response = $this->put(route('lendings.update', $lending->id), $data);
+        $response = $this->withHeaders($this->headers)->put(route('lendings.update', $lending->id), $data);
 
         $response->assertStatus(201);
 
@@ -469,7 +531,7 @@ class LendingTest extends TestCase
         assertNull($lending->returned_status_id);
         assertNull($lending->returned_date);
 
-        $response = $this->put(route('lendings.update', $lending->id), $data);
+        $response = $this->withHeaders($this->headers)->put(route('lendings.update', $lending->id), $data);
 
         $response->assertStatus(422);
 

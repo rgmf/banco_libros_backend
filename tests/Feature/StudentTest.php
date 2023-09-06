@@ -3,27 +3,45 @@
 namespace Tests\Feature;
 
 use App\Models\Student;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 use function Tests\assertStudent;
 
 use function PHPUnit\Framework\assertEquals;
-use function PHPUnit\Framework\assertTrue;
 
 class StudentTest extends TestCase
 {
     use DatabaseMigrations;
 
+    private $headers;
+
     public function setUp(): void
     {
         parent::setUp();
         Artisan::call('db:seed');
+
+        $token = "testtoken";
+
+        $user = new User();
+        $user->name = "test";
+        $user->email = "test@test.com";
+        $user->password = "test";
+        $user->gdc_token = $token;
+        $user->gdc_token_expiration = Carbon::tomorrow();
+        $user->save();
+
+        $this->headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json'
+        ];
     }
 
     public function test_get_api_students(): void
     {
-        $response = $this->get(route('students.index'));
+        $response = $this->withHeaders($this->headers)->get(route('students.index'));
         $response->assertStatus(200);
 
         $data = $response->json()['data'];
@@ -45,7 +63,7 @@ class StudentTest extends TestCase
     public function test_get_api_student(): void
     {
         $student = Student::get()->first();
-        $response = $this->get(route('students.show', $student->id));
+        $response = $this->withHeaders($this->headers)->get(route('students.show', $student->id));
         $response->assertStatus(200);
 
         $arrayObj = $response->json()['data'];
@@ -63,7 +81,7 @@ class StudentTest extends TestCase
 
         sort($ids);
         $idNotExists = $ids[array_key_last($ids)] + 1;
-        $response = $this->get(route('students.show', $idNotExists));
+        $response = $this->withHeaders($this->headers)->get(route('students.show', $idNotExists));
         $response->assertStatus(404);
 
         assertEquals('El/la estudiante que solicitas no existe', $response->json()['data']['message']);
@@ -80,7 +98,7 @@ class StudentTest extends TestCase
                 ['nia' => '20202020', 'name' => 'Name', 'lastname1' => 'Lastname 1']
             ]
         ];
-        $response = $this->post(route('students.storebulk'), $students);
+        $response = $this->withHeaders($this->headers)->post(route('students.storebulk'), $students);
 
         $response->assertStatus(200);
         assertEquals(2, count($response->json()['data']));
@@ -97,7 +115,7 @@ class StudentTest extends TestCase
                 ['nia' => '20202020', 'name' => 'Name', 'lastname1' => 'Lastname 1']
             ]
         ];
-        $response = $this->post(route('students.storebulk'), $students);
+        $response = $this->withHeaders($this->headers)->post(route('students.storebulk'), $students);
 
         $response->assertStatus(200);
         assertEquals(1, count($response->json()['data']));
@@ -114,7 +132,7 @@ class StudentTest extends TestCase
                 ['nia' => '22222222', 'name' => 'Name', 'lastname1' => 'Lastname 1']
             ]
         ];
-        $response = $this->post(route('students.storebulk'), $students);
+        $response = $this->withHeaders($this->headers)->post(route('students.storebulk'), $students);
 
         $response->assertStatus(422);
         assertEquals('Error en la validación', $response->json()['message']);

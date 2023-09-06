@@ -59,6 +59,7 @@ class BookController extends Controller
         try {
             $book->fill($request->only($request->keys()));
             $book->save();
+            $book->load('grade');
             return new BookResource($book, 201);
         } catch (QueryException $exception) {
             $error_code = $exception->errorInfo[1];

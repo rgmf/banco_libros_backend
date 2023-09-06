@@ -8,6 +8,8 @@ use App\Models\Book;
 use App\Models\BookCopy;
 use App\Models\Observation;
 use App\Models\Status;
+use App\Models\User;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 use function PHPUnit\Framework\assertEquals;
@@ -20,17 +22,37 @@ class BookCopyTest extends TestCase
 {
     use DatabaseMigrations;
 
+    private $headers;
+
     public function setUp(): void
     {
         parent::setUp();
         Artisan::call('db:seed');
+
+        $token = "testtoken";
+
+        $user = new User();
+        $user->name = "test";
+        $user->email = "test@test.com";
+        $user->password = "test";
+        $user->gdc_token = $token;
+        $user->gdc_token_expiration = Carbon::tomorrow();
+        $user->save();
+
+        $this->headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json'
+        ];
     }
 
     public function test_get_bookcopy_by_barcode(): void
     {
         $bookCopy = BookCopy::get()->first();
 
-        $response = $this->get(route('bookcopies.showbybarcode', $bookCopy->barcode));
+        $response = $this->withHeaders($this->headers)->get(
+            route('bookcopies.showbybarcode',
+            $bookCopy->barcode)
+        );
 
         $bookCopy = $response->json()['data'];
 
@@ -43,7 +65,7 @@ class BookCopyTest extends TestCase
     {
         $book = Book::first();
 
-        $response = $this->get(route('books.copies', $book->id));
+        $response = $this->withHeaders($this->headers)->get(route('books.copies', $book->id));
         $response->assertStatus(200);
 
         assertTrue(array_key_exists('data', $response->json()));
@@ -68,7 +90,10 @@ class BookCopyTest extends TestCase
         $status = Status::first();
         $count = 5;
 
-        $response = $this->post(route('bookcopies.store', [$book->id, $count, $status->id]));
+        $response = $this->withHeaders($this->headers)->post(
+            route('bookcopies.store',
+            [$book->id, $count, $status->id])
+        );
         $response->assertStatus(200);
 
         $bookCopies = $response->json()['data'];
@@ -88,7 +113,10 @@ class BookCopyTest extends TestCase
         $statusId = 1;
         $count = 5;
 
-        $response = $this->post(route('bookcopies.store', [$bookId, $count, $statusId]));
+        $response = $this->withHeaders($this->headers)->post(
+            route('bookcopies.store',
+            [$bookId, $count, $statusId])
+        );
         $response->assertStatus(404);
 
         assertEquals('El libro del que quieres crear copias no existe', $response->json()['data']['message']);
@@ -100,7 +128,10 @@ class BookCopyTest extends TestCase
         $statusId = 20;
         $count = 5;
 
-        $response = $this->post(route('bookcopies.store', [$bookId, $count, $statusId]));
+        $response = $this->withHeaders($this->headers)->post(
+            route('bookcopies.store',
+            [$bookId, $count, $statusId])
+        );
         $response->assertStatus(404);
 
         assertEquals('El estado indicado para los libros no existe', $response->json()['data']['message']);
@@ -117,7 +148,11 @@ class BookCopyTest extends TestCase
             'comment' => "A new comment $todayDate"
         ];
 
-        $response = $this->put(route('bookcopies.update', $bookCopy->id), $data);
+        $response = $this->withHeaders($this->headers)->put(
+            route('bookcopies.update',
+            $bookCopy->id),
+            $data
+        );
 
         $response->assertStatus(201);
 
@@ -136,7 +171,11 @@ class BookCopyTest extends TestCase
             'observations' => $ids
         ];
 
-        $response = $this->put(route('bookcopies.update', $bookCopy->id), $data);
+        $response = $this->withHeaders($this->headers)->put(
+            route('bookcopies.update',
+            $bookCopy->id),
+            $data
+        );
 
         $response->assertStatus(201);
 
@@ -149,7 +188,11 @@ class BookCopyTest extends TestCase
         $bookCopy = BookCopy::first();
         $data = [];
 
-        $response = $this->put(route('bookcopies.update', $bookCopy->id), $data);
+        $response = $this->withHeaders($this->headers)->put(
+            route('bookcopies.update',
+            $bookCopy->id),
+            $data
+        );
 
         $response->assertStatus(201);
 

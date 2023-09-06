@@ -11,21 +11,40 @@ use function Tests\assertBook;
 
 use App\Models\Book;
 use App\Models\Grade;
+use App\Models\User;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 class BookTest extends TestCase
 {
     use DatabaseMigrations;
 
+    private $headers;
+
     public function setUp(): void
     {
         parent::setUp();
         Artisan::call('db:seed', ['--class' => 'BooksSeeder']);
+
+        $token = "testtoken";
+
+        $user = new User();
+        $user->name = "test";
+        $user->email = "test@test.com";
+        $user->password = "test";
+        $user->gdc_token = $token;
+        $user->gdc_token_expiration = Carbon::tomorrow();
+        $user->save();
+
+        $this->headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json'
+        ];
     }
 
     public function test_get_api_books(): void
     {
-        $response = $this->get(route('books.index'));
+        $response = $this->withHeaders($this->headers)->get(route('books.index'));
         $response->assertStatus(200);
 
         $data = $response->json()['data'];
@@ -39,7 +58,7 @@ class BookTest extends TestCase
     public function test_get_api_book(): void
     {
         $book = Book::get()->first();
-        $response = $this->get(route('books.show', $book->id));
+        $response = $this->withHeaders($this->headers)->get(route('books.show', $book->id));
         $response->assertStatus(200);
 
         $arrayObj = $response->json()['data'];
@@ -57,7 +76,7 @@ class BookTest extends TestCase
 
         sort($ids);
         $idNotExists = $ids[array_key_last($ids)] + 1;
-        $response = $this->get(route('books.show', $idNotExists));
+        $response = $this->withHeaders($this->headers)->get(route('books.show', $idNotExists));
         $response->assertStatus(404);
 
         assertEquals('El libro que solicitas no existe', $response->json()['data']['message']);
@@ -67,10 +86,10 @@ class BookTest extends TestCase
     {
         $books = Book::get();
 
-        $response = $this->delete(route('books.destroy', $books->first()));
+        $response = $this->withHeaders($this->headers)->delete(route('books.destroy', $books->first()));
         $response->assertStatus(200);
 
-        $response = $this->delete(route('books.destroy', $books->last()->id));
+        $response = $this->withHeaders($this->headers)->delete(route('books.destroy', $books->last()->id));
         $response->assertStatus(200);
         assertEquals('El libro ha sido eliminado correctamente', $response->json()['data']['message']);
 
@@ -81,8 +100,8 @@ class BookTest extends TestCase
     {
         $book = Book::first();
 
-        $this->delete(route('books.destroy', $book->id));
-        $response = $this->delete(route('books.destroy', $book->id));
+        $this->withHeaders($this->headers)->delete(route('books.destroy', $book->id));
+        $response = $this->withHeaders($this->headers)->delete(route('books.destroy', $book->id));
         $response->assertStatus(404);
         assertEquals('El libro que intentas eliminar no existe', $response->json()['data']['message']);
     }
@@ -99,7 +118,7 @@ class BookTest extends TestCase
             'grade_id' => Grade::first()->id
         ];
 
-        $response = $this->post(route('books.store'), $data);
+        $response = $this->withHeaders($this->headers)->post(route('books.store'), $data);
         $response->assertStatus(201);
         $response->assertJsonIsObject();
 
@@ -122,8 +141,8 @@ class BookTest extends TestCase
             'grade_id' => Grade::first()->id
         ];
 
-        $this->post(route('books.store'), $data);
-        $response = $this->post(route('books.store'), $data);
+        $this->withHeaders($this->headers)->post(route('books.store'), $data);
+        $response = $this->withHeaders($this->headers)->post(route('books.store'), $data);
         $response->assertStatus(409);
         assertEquals('El libro ya existe', $response->json()['data']['message']);
     }
@@ -137,7 +156,7 @@ class BookTest extends TestCase
             'publisher' => 'Book publisher',
             'volumes' => 1
         ];
-        $response = $this->post(route('books.store'), $data);
+        $response = $this->withHeaders($this->headers)->post(route('books.store'), $data);
 
         $response->assertStatus(422);
         assertEquals('Error en la validación', $response->json()['message']);
@@ -154,7 +173,7 @@ class BookTest extends TestCase
             'title' => 'Book testing title'
         ];
 
-        $response = $this->put(route('books.update', $book->id), $data);
+        $response = $this->withHeaders($this->headers)->put(route('books.update', $book->id), $data);
 
         $response->assertStatus(201);
         assertEquals('Book testing title', Book::find($book->id)->title);
@@ -174,7 +193,7 @@ class BookTest extends TestCase
             'volumes' => 1,
             'grade_id' => Grade::first()->id
         ];
-        $this->post(route('books.store'), $data);
+        $this->withHeaders($this->headers)->post(route('books.store'), $data);
 
         $book = Book::where('isbn', '<>', $data['isbn'])->first();
         $data = [
@@ -182,7 +201,7 @@ class BookTest extends TestCase
             'title' => 'Book testing title'
         ];
 
-        $response = $this->put(route('books.update', $book->id), $data);
+        $response = $this->withHeaders($this->headers)->put(route('books.update', $book->id), $data);
         $response->assertStatus(409);
         assertEquals('Ya existe un libro con esos datos', $response->json()['data']['message']);
     }
@@ -194,7 +213,7 @@ class BookTest extends TestCase
             'title' => null
         ];
 
-        $response = $this->put(route('books.update', $book->id), $data);
+        $response = $this->withHeaders($this->headers)->put(route('books.update', $book->id), $data);
 
         $response->assertStatus(422);
         assertEquals('Error en la validación', $response->json()['message']);
@@ -209,7 +228,7 @@ class BookTest extends TestCase
             'volumes' => 0
         ];
 
-        $response = $this->put(route('books.update', $book->id), $data);
+        $response = $this->withHeaders($this->headers)->put(route('books.update', $book->id), $data);
 
         $response->assertStatus(422);
         assertEquals('Error en la validación', $response->json()['message']);
