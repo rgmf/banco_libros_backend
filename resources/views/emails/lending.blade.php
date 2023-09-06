@@ -85,16 +85,20 @@
     @endforelse
 
     <p>
-        Le recordamos que, al recibir el lote de libros, se comprometen a:
+        <strong>Le recordamos que al recibir el lote de libros se comprometen a hacer entrega del mismo,
+        al finalizar el curso, en buen estado: forrado rígido para su buena conservación, sin 
+        subrayado, sin suciedad y sin hojas mojadas.</strong>
     </p>
 
-    <ul>
-        <li><strong>Cuidar el lote de libros y devolverlo en buen estado</strong></li>
-        <li><strong>Proteger los libros con un forro rígido</strong></li>
-        <li><strong>No subrayar ni escribir en los libros con bolígrafo o rotulador</strong></li>
-        <li><strong>Borrar posibles anotaciones a lápiz</strong></li>
-        <li><strong>No entregar libros mojados y/o sucios</strong></li>
-    </ul>
+    <p>
+        <strong>El libro que no cumpla estas condiciones deberá ser repuesto por la familia o será excluido del
+        Banco de Libros.</strong>
+    </p>
+
+    <p>
+        Valoremos que su coste asciende a más de 200€ y que el curso siguiente estos libros serán para otros/as
+        compañeros/as.
+    </p>
 
     <p>
         Si en un plazo de 7 días no recibimos ninguna notificación por su parte, entenderemos
