@@ -37,7 +37,7 @@ class LoginController extends Controller
             $user->password = bcrypt($request->password);
         }
         $user->gdc_token = $token;
-        $user->gdc_token_expiration = Carbon::now()->addHour();
+        $user->gdc_token_expiration = Carbon::now()->addDays(1);
         $user->save();
 
         return response()->json(['user' => $user, 'token' => $token]);
