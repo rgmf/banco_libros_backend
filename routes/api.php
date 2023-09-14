@@ -71,6 +71,8 @@ Route::middleware('verifyToken')->group(function () {
     Route::get('lendings/book/barcode/{barcode}/show', [LendingController::class, 'showByBookBarcode'])
         ->where('barcode', '[0-9]{13}')
         ->name('lendings.showbybookbarcode');
+    Route::post('lendings/messaging', [LendingController::class, 'gradesMessaging'])
+        ->name('lendings.messaging');
 
     Route::apiResource('academicyears', AcademicYearController::class)->only(['index', 'show', 'store']);
 });

@@ -136,6 +136,13 @@ In this app the e-mails are sent using a Job dispatching so in the .env configur
 QUEUE_CONNECTION=database
 #+END_SRC
 
+To dispatch manually the e-mails run this command:
+
+#+BEGIN_SRC bash
+docker compose exec bl-app php artisan queue:work
+#+END_SRC
+
+
 You need to set "Less Secure Apps" in you Gmail account (if you use this e-mail service):
 https://support.google.com/accounts/answer/6010255?hl=en
 

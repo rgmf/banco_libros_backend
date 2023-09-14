@@ -58,15 +58,58 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            'logging' => true,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
+        /*'testing' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_TEST_URL'),
+            'host' => 'bl-mariadb-test',
+            'port' => '3307',
+            'database' => 'bancolibros',
+            'username' => 'bancolibros',
+            'password' =>'bancolibros',
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'logging' => true,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],*/
+
+        /*'testing' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_TEST_URL'),
+            'host' => env('DB_TEST_HOST', '127.0.0.1'),
+            'port' => env('DB_TEST_PORT', '3307'),
+            'database' => env('DB_TEST_DATABASE', 'forge'),
+            'username' => env('DB_TEST_USERNAME', 'forge'),
+            'password' => env('DB_TEST_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'logging' => true,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],*/
+
         'testing' => [
             'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_TEST_HOST', '127.0.0.1'),
+            'url' => env('DATABASE_TEST_URL'),
+            'host' => env('DB_TEST_HOST', 'bl-mariadb-test'),
             'port' => env('DB_TEST_PORT', '3306'),
             'database' => env('DB_TEST_DATABASE', 'forge'),
             'username' => env('DB_TEST_USERNAME', 'forge'),
@@ -78,30 +121,11 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            'logging' => true,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
-
-        // 'testing' => [
-        //     'driver' => 'mysql',
-        //     'url' => env('DATABASE_TEST_URL'),
-        //     'host' => env('DB_HOST', 'bl-mariadb-test'),
-        //     'port' => env('DB_PORT', '3306'),
-        //     'database' => env('DB_DATABASE', 'bancolibros'),
-        //     'username' => env('DB_USERNAME', 'bancolibros'),
-        //     'password' => env('DB_PASSWORD', 'bancolibros'),
-        //     'unix_socket' => env('DB_SOCKET', ''),
-        //     'charset' => 'utf8mb4',
-        //     'collation' => 'utf8mb4_unicode_ci',
-        //     'prefix' => '',
-        //     'prefix_indexes' => true,
-        //     'strict' => true,
-        //     'engine' => null,
-        //     'options' => extension_loaded('pdo_mysql') ? array_filter([
-        //         PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-        //     ]) : [],
-        // ],
 
         'pgsql' => [
             'driver' => 'pgsql',

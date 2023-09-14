@@ -6,14 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\Lending;
 use App\Http\Requests\LendingRequest;
 use App\Http\Requests\LendingUpdateRequest;
+use App\Http\Requests\LendingGradesMessagingRequest;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\LendingCollection;
 use App\Http\Resources\LendingResource;
+use App\Http\Resources\MessagesResource;
 use App\Models\BookCopy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use App\Jobs\SendEmailJob;
+use App\Mail\LendingErrorMail;
+use App\Mail\LendingMail;
+use App\Models\Student;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class LendingController extends Controller
 {
@@ -161,12 +168,66 @@ class LendingController extends Controller
         }
     }
 
+    public function gradesMessaging(LendingGradesMessagingRequest $request)
+    {
+        $gradeIds = $request->input('grades');
+        $numberOfMessages = 0;
+        foreach ($gradeIds as $gradeId) {
+            $results = Lending::select('students.id', 'lendings.academic_year_id')
+                ->join('students', 'lendings.student_id', '=', 'students.id')
+                ->join('book_copies', 'lendings.book_copy_id', '=', 'book_copies.id')
+                ->join('books', 'book_copies.book_id', '=', 'books.id')
+                ->where('books.grade_id', $gradeId)
+                ->where('lendings.returned_date', null)
+                ->distinct()
+                ->get();
+            foreach ($results as $result) {
+                $this->dispatchLendingEmail($result["id"], $result["academic_year_id"]);
+                $numberOfMessages++;
+            }
+        }
+
+        return new MessagesResource(strval($numberOfMessages));
+    }
+
     private function dispatchLendingEmail($studentId, $academicYearId) {
         try {
             dispatch(new SendEmailJob($studentId, $academicYearId));
         } catch (\Exception $e) {
             // Registra la excepción en los logs u toma medidas según sea necesario
-            Log::error("Error al enviar el correo electrónico al estudiante identificado con $studentId: " . $e->getMessage());
+            Log::error('Error al enviar el correo electrónico al estudiante identificado con $studentId: ' . $e->getMessage());
         }
+        /*$student = Student::find($studentId);
+        if (!$student->email_mother && !$student->email_father) {
+            Mail::to('bancodelibros@ieslaencanta.com')
+                ->send(new LendingErrorMail(
+                    $studentId,
+                    $academicYearId,
+                    "No tenemos información de e-mails de este estudiante"
+                ));
+            return;
+        }
+
+        $recipients = [];
+
+        if ($student->email_mother) {
+            if ($student->email_mother !== "roman@letero.es") {
+                return;
+            }
+            $recipients[] = $student->email_mother;
+        }
+
+        if ($student->email_father) {
+            if ($student->email_father !== "rmartinezf@ieslaencanta.com") {
+                return;
+            }
+            $recipients[] = $student->email_father;
+        }
+
+        Mail::to($recipients)
+            ->bcc('bancodelibros@ieslaencanta.com')
+            ->send(
+                new LendingMail($studentId, $academicYearId)
+            );*/
     }
 }

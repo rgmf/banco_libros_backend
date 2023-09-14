@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\AcademicYear;
+use App\Models\Book;
 use App\Models\BookCopy;
 use App\Models\Cohort;
+use App\Models\Grade;
 use App\Models\Lending;
 use App\Models\Observation;
 use App\Models\Student;
@@ -14,6 +16,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
+use function PHPSTORM_META\type;
 use function PHPUnit\Framework\assertEquals;
 use function PHPUnit\Framework\assertNotNull;
 use function PHPUnit\Framework\assertNull;
@@ -540,5 +543,55 @@ class LendingTest extends TestCase
             'Se necesita el estado en que se devuelve la copia del libro',
             $response->json()['errors']['returned_status_id'][0]
         );
+    }
+
+    public function test_lending_grades_messaging_ok(): void
+    {
+        $firstGrade = Grade::first();
+        $gradeArray = [];
+
+        $books = Book::where('grade_id', $firstGrade->id)->get();
+        $students = [];
+        foreach ($books as $book) {
+            $bookCopies = $book->bookCopies;
+            foreach ($bookCopies as $bc) {
+                foreach ($bc->lendings()->whereNull('returned_date')->get() as $lending) {
+                    if (count(array_filter($students, fn($s) => $s->id == $lending->student->id)) == 0) {
+                        $students[] = $lending->student;
+                    }
+                }
+            }
+        }
+
+        $data = [
+            'grades' => ['id' => $firstGrade->id]
+        ];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.messaging'), $data);
+        $response->assertStatus(200);
+        assertEquals(strval(count($students)), $response->json()['data']['messages']);
+    }
+
+    public function test_lending_grades_messaging_without_grades(): void
+    {
+        $data = [
+            'grades' => []
+        ];
+        $response = $this->withHeaders($this->headers)->post(route('lendings.messaging'), $data);
+        $response->assertStatus(422);
+        assertEquals('Error en la validación', $response->json()['message']);
+        assertEquals('Tienes que indicar, al menos, un curso al que enviar el e-mail', $response->json()['errors']['grades'][0]);
+    }
+
+    public function test_lending_grades_messaging_with_grades_not_integers(): void
+    {
+        $data = [
+            'grades' => ['grade1', 'grade2']
+        ];
+        $response = $this->withHeaders($this->headers)->post(route('lendings.messaging'), $data);
+        $response->assertStatus(422);
+        assertEquals('Error en la validación', $response->json()['message']);
+        assertEquals('No se han indicado los cursos correctamente (deberían ser los identificadores del curso)', $response->json()['errors']['grades.0'][0]);
+        assertEquals('No se han indicado los cursos correctamente (deberían ser los identificadores del curso)', $response->json()['errors']['grades.1'][0]);
     }
 }

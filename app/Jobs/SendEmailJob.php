@@ -43,16 +43,10 @@ class SendEmailJob implements ShouldQueue
         $recipients = [];
 
         if ($student->email_mother) {
-            if ($student->email_mother !== "roman@letero.es") {
-                return;
-            }
             $recipients[] = $student->email_mother;
         }
 
         if ($student->email_father) {
-            if ($student->email_father !== "rmartinezf@ieslaencanta.com") {
-                return;
-            }
             $recipients[] = $student->email_father;
         }
 
