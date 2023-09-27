@@ -49,7 +49,8 @@ class StudentResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'cohort' => $this->cohort,
-            'lendings' => $this->lendings
+            'lendings' => $this->lendings,
+            'is_member' => $this->is_member
         ];
     }
 

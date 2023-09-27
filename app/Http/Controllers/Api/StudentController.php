@@ -32,6 +32,25 @@ class StudentController extends Controller
         $students = $request->input('students');
         $studentsInserted = [];
 
+        foreach ($students as $studentData) {
+            $existingStudent = Student::where('nia', $studentData['nia'])->first();
+
+            if ($existingStudent) {
+                $existingStudent->update($studentData);
+                $existingStudent->load('cohort');
+                $studentsInserted[] = $existingStudent;
+            } else {
+                $newStudent = Student::create($studentData);
+                $newStudent->load('cohort');
+                $studentsInserted[] = $newStudent;
+            }
+        }
+
+        return new StudentCollection($studentsInserted);
+
+        /*$students = $request->input('students');
+        $studentsInserted = [];
+
         foreach ($students as $student) {
             try {
                 $student = Student::create($student);
@@ -41,6 +60,6 @@ class StudentController extends Controller
             }
         }
 
-        return new StudentCollection($studentsInserted);
+        return new StudentCollection($studentsInserted);*/
     }
 }

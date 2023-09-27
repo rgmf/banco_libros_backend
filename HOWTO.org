@@ -94,11 +94,13 @@ You can create .env.testing file that will be used by Laravel when execute PHPUn
 docker compose exec bl-app php artisan test --env=testing
 #+END_SRC
 
+
 * Execute mariadb into container
 
 #+BEGIN_SRC bash
 docker compose exec bl-mariadb mariadb -ubancolibros -pbancolibros bancolibros
 #+END_SRC
+
 
 * Re-build frontend
 Execute `docker compose` like that:
@@ -106,6 +108,7 @@ Execute `docker compose` like that:
 #+BEGIN_SRC bash
 docker compose up -d --no-deps --build bl-frontend
 #+END_SRC
+
 
 * How to know header server send
 If you want to know what headers the server send to the client, then you can use cURL like this:
@@ -115,6 +118,7 @@ curl -I localhost:8080/api/login
 #END_SRC
 
 In that way you could check if `Access-Control-Allow-Origin: *` is coming, for example.
+
 
 * Configure Laravel to send e-mails
 For example, if you want to use Gmail to send e-mails, you need to set this into .env:

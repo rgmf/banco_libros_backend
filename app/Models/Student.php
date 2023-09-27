@@ -15,7 +15,7 @@ class Student extends Model
         'nia',
         'name',
         'lastname1',
-        'lastanem2',
+        'lastname2',
         'cohort_id',
         'picture',
         'nationality',
@@ -32,7 +32,8 @@ class Student extends Model
         'name_mother',
         'lastname1_mother',
         'lastname2_mother',
-        'email_mother'
+        'email_mother',
+        'is_member'
     ];
 
     public function cohort(): BelongsTo

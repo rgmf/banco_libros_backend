@@ -40,7 +40,8 @@ class StudentCollection extends ResourceCollection
                     'lastname2_mother' => $student->lastname2_mother,
                     'email_mother' => $student->email_mother,
                     'cohort' => $student->cohort,
-                    'lendings' => $student->lendings
+                    'lendings' => $student->lendings,
+                    'is_member' => $student->is_member
                 ];
             })
         ];
