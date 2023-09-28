@@ -8,6 +8,7 @@ use App\Http\Requests\LendingRequest;
 use App\Http\Requests\LendingUpdateRequest;
 use App\Http\Requests\LendingGradesMessagingRequest;
 use App\Http\Resources\ErrorResource;
+use App\Http\Resources\InfoResource;
 use App\Http\Resources\LendingCollection;
 use App\Http\Resources\LendingResource;
 use App\Http\Resources\MessagesResource;
@@ -15,12 +16,7 @@ use App\Models\BookCopy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use App\Jobs\SendEmailJob;
-use App\Mail\LendingErrorMail;
-use App\Mail\LendingMail;
-use App\Models\Student;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class LendingController extends Controller
 {
@@ -165,6 +161,17 @@ class LendingController extends Controller
             return new LendingResource($lending, 201);
         } catch (\Exception $e) {
             return new ErrorResource(500, 'Error al intentar modificar el préstamos', $e);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $lending = Lending::findOrFail($id);
+            $lending->delete();
+            return new InfoResource(200, 'El préstamo ha sido eliminado correctamente');
+        } catch (\Exception $e) {
+            return new ErrorResource(500, 'Error al eliminar el préstamo: ' . $e->getMessage());
         }
     }
 

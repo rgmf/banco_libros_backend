@@ -64,7 +64,7 @@ Route::middleware('verifyToken')->group(function () {
     Route::post('students/messaging', [StudentController::class, 'cohortsMessaging'])
         ->name('students.messaging');
 
-    Route::apiResource('lendings', LendingController::class)->only(['store', 'update']);
+    Route::apiResource('lendings', LendingController::class)->only(['store', 'update', 'destroy']);
     Route::get('lendings/student/{student_id}/index', [LendingController::class, 'indexByStudent'])
         ->where('student_id', '[0-9]+')
         ->name('lendings.indexbystudent');
