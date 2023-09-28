@@ -10,6 +10,12 @@ use Illuminate\Database\QueryException;
 
 class CohortController extends Controller
 {
+    public function index()
+    {
+        $cohorts = Cohort::orderBy('name')->get();
+        return new CohortCollection($cohorts);
+    }
+
     public function storeBulk(BulkCohortsRequest $request)
     {
         $cohorts = $request->input('cohorts');

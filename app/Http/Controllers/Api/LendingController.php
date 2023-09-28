@@ -195,7 +195,7 @@ class LendingController extends Controller
             dispatch(new SendEmailJob($studentId, $academicYearId));
         } catch (\Exception $e) {
             // Registra la excepción en los logs u toma medidas según sea necesario
-            Log::error('Error al enviar el correo electrónico al estudiante identificado con $studentId: ' . $e->getMessage());
+            Log::error("Error al enviar el correo electrónico al estudiante identificado con $studentId: " . $e->getMessage());
         }
         /*$student = Student::find($studentId);
         if (!$student->email_mother && !$student->email_father) {

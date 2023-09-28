@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BulkStudentsRequest;
+use App\Http\Requests\CohortsMessagingRequest;
 use App\Http\Resources\ErrorResource;
+use App\Http\Resources\MessagesResource;
 use App\Http\Resources\StudentCollection;
 use App\Http\Resources\StudentResource;
+use App\Jobs\SendOpenTextEmailJob;
 use App\Models\Student;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 
 class StudentController extends Controller
 {
@@ -61,5 +65,31 @@ class StudentController extends Controller
         }
 
         return new StudentCollection($studentsInserted);*/
+    }
+
+    public function cohortsMessaging(CohortsMessagingRequest $request)
+    {
+        $text = $request->input('text');
+        $cohortIds = $request->input('cohorts');
+        $numberOfMessages = 0;
+        foreach ($cohortIds as $cohortId) {
+            $students = Student::where('cohort_id', $cohortId)->where('is_member', true)->get();
+            foreach ($students as $student) {
+                $this->dispatchLendingEmail($student, $text);
+                $numberOfMessages++;
+            }
+        }
+
+        return new MessagesResource(strval($numberOfMessages));
+    }
+
+    private function dispatchLendingEmail(Student $student, string $text) {
+        try {
+            dispatch(new SendOpenTextEmailJob($student, $text));
+        } catch (\Exception $e) {
+            // Registra la excepción en los logs u toma medidas según sea necesario
+            $studentId = $student->id;
+            Log::error("Error al enviar el correo electrónico al estudiante identificado con $studentId: " . $e->getMessage());
+        }
     }
 }

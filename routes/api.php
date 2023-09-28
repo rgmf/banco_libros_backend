@@ -56,10 +56,13 @@ Route::middleware('verifyToken')->group(function () {
 
     Route::get('observations', [ObservationController::class, 'index'])->name('observations.index');
 
+    Route::apiResource('cohorts', CohortController::class)->only(['index']);
     Route::post('cohorts/bulk', [CohortController::class, 'storeBulk'])->name('cohorts.storebulk');
 
     Route::apiResource('students', StudentController::class)->only(['index', 'show']);
     Route::post('students/bulk', [StudentController::class, 'storeBulk'])->name('students.storebulk');
+    Route::post('students/messaging', [StudentController::class, 'cohortsMessaging'])
+        ->name('students.messaging');
 
     Route::apiResource('lendings', LendingController::class)->only(['store', 'update']);
     Route::get('lendings/student/{student_id}/index', [LendingController::class, 'indexByStudent'])
