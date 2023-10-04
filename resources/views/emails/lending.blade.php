@@ -96,11 +96,6 @@
     </p>
 
     <p>
-        Valoremos que su coste asciende a más de 200€ y que el curso siguiente estos libros serán para otros/as
-        compañeros/as.
-    </p>
-
-    <p>
         Si en un plazo de 7 días no recibimos ninguna notificación por su parte, entenderemos
         que están de acuerdo con la información que aporta este correo y servirá como justificante
         en el momento de la devolución de los libros.
