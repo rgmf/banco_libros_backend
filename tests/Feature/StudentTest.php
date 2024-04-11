@@ -118,7 +118,9 @@ class StudentTest extends TestCase
         $response = $this->withHeaders($this->headers)->post(route('students.storebulk'), $students);
 
         $response->assertStatus(200);
-        assertEquals(1, count($response->json()['data']));
+        # There are two students in the response: the updated and the new one...
+        assertEquals(2, count($response->json()['data']));
+        # ... but only on more student in the database.
         assertEquals(count($beginStudents) + 1, count(Student::get()));
     }
 
