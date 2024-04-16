@@ -37,16 +37,16 @@ class LendingsSeeder extends Seeder
     {
         $academicYear = AcademicYear::where('name', '2022-2023')->first();
 
-        $bookCopies1 = BookCopy::orderBy('id')->whereHas('book', function($query) {
+        $bookCopies1 = BookCopy::orderBy('id')->has('observations')->whereHas('book', function($query) {
             $query->where('title', 'like', '%Castellano%');
         })->get();
-        $bookCopies2 = BookCopy::orderBy('id')->whereHas('book', function($query) {
+        $bookCopies2 = BookCopy::orderBy('id')->has('observations')->whereHas('book', function($query) {
             $query->where('title', 'like', '%Matemáticas%');
         })->get();
-        $bookCopies3 = BookCopy::orderBy('id')->whereHas('book', function($query) {
+        $bookCopies3 = BookCopy::orderBy('id')->has('observations')->whereHas('book', function($query) {
             $query->where('title', 'like', '%Historia%');
         })->get();
-        $bookCopies4 = BookCopy::orderBy('id')->whereHas('book', function($query) {
+        $bookCopies4 = BookCopy::orderBy('id')->has('observations')->whereHas('book', function($query) {
             $query->where('title', 'like', '%Informática%');
         })->get();
 

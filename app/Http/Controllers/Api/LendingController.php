@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Lending;
 use App\Http\Requests\LendingRequest;
+use App\Http\Requests\LendingReturnRequest;
 use App\Http\Requests\LendingUpdateRequest;
 use App\Http\Requests\LendingGradesMessagingRequest;
 use App\Http\Resources\ErrorResource;
@@ -172,6 +173,69 @@ class LendingController extends Controller
             return new InfoResource(200, 'El préstamo ha sido eliminado correctamente');
         } catch (\Exception $e) {
             return new ErrorResource(500, 'Error al eliminar el préstamo: ' . $e->getMessage());
+        }
+    }
+
+    public function return(LendingReturnRequest $request)
+    {
+        try {
+            DB::reconnect();
+            DB::beginTransaction();
+
+            $result = [];
+
+            $studentId = $request->input('student_id');
+            $bookCopies = $request->input('book_copies');
+
+            foreach ($bookCopies as $bookCopyData) {
+                $lendings = Lending::where('student_id', $studentId)
+                    ->where('book_copy_id', $bookCopyData['id'])
+                    ->whereNull('returned_date')
+                    ->get();
+
+                if ($lendings->count() != 1) {
+                    DB::rollBack();
+                    $msg = "Se esperaba 1 préstamo para student_id=$studentId y book_copy_id={$bookCopyData['id']} pero se han obtenido {$lendings->count()} préstamos";
+                    if ($lendings->count() == 0) {
+                        $msg .= ", así pues, el estudiante no tiene prestado dicho libro";
+                    }
+                    return new ErrorResource(500, $msg);
+                }
+
+                // Update lending
+                $lending = $lendings->first();
+                $lending->fill([
+                    'returned_date' => now(),
+                    'returned_status_id' => $bookCopyData['status_id'],
+                ]);
+                $lending->save();
+
+                // Update new status of the book copy (observations and comment)
+                $bookCopy = BookCopy::find($bookCopyData['id']);
+                if (!$bookCopy) {
+                    DB::rollback();
+                    return new ErrorResource(404, "No existe la copia del libro con id={$bookCopyData['id']}");
+                }
+
+                if (array_key_exists('comment', $bookCopyData)) {
+                    $bookCopy->comment = $bookCopyData['comment'];
+                }
+                $bookCopy->observations()->sync(array_key_exists('observations_id', $bookCopyData) ? $bookCopyData['observations_id'] : []);
+                $bookCopy->save();
+
+                // Preparing data to return
+                $lending->loadMissing(['student', 'bookCopy', 'bookCopy.observations', 'bookCopy.status', 'academicYear']);
+
+                $result[] = $lending;
+            }
+
+            DB::commit();
+
+            return new LendingCollection($result);
+        } catch (QueryException $e) {
+            DB::rollback();
+        } catch (\Exception $e) {
+            DB::rollback();
         }
     }
 
