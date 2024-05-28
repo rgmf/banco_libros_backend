@@ -36,7 +36,9 @@ class LendingUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'returned_status_id' => 'required'
+            'returned_status_id' => 'required|numeric',
+            'observations_id' => 'array',
+            'comment' => 'nullable|string'
         ];
     }
 

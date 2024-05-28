@@ -156,11 +156,28 @@ class LendingController extends Controller
     public function update(LendingUpdateRequest $request, Lending $lending)
     {
         try {
-            $lending->returned_status_id = $request->input('returned_status_id');
+            DB::reconnect();
+            DB::beginTransaction();
+
+            $statusId = $request->input('returned_status_id');
+            $observationsId = $request->has('observations_id') ? $request->input('observations_id') : [];
+            $comment = $request->has('comment') ? $request->input('comment') : '';
+
+            $lending->returned_status_id = $statusId;
             $lending->returned_date = now();
             $lending->save();
+
+            $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
+            $bookCopy->status_id = $statusId;
+            $bookCopy->observations()->sync($observationsId);
+            $bookCopy->comment = $comment;
+            $bookCopy->save();
+
+            DB::commit();
+
             return new LendingResource($lending, 201);
         } catch (\Exception $e) {
+            DB::rollback();
             return new ErrorResource(500, 'Error al intentar modificar el préstamos', $e);
         }
     }

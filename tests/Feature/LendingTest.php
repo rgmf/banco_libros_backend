@@ -507,11 +507,13 @@ class LendingTest extends TestCase
         assertStringStartsWith('Error al prestar el libro', $response->json()['data']['message']);
     }
 
-    public function test_return_lending(): void
+    public function test_return_lending_with_only_needed_data_returned_status_id(): void
     {
         $lending = Lending::first();
+        $bookCopy = $lending->bookCopy;
+        $statusId = $bookCopy->status_id < 3 ? $bookCopy->status_id + 1 : 1;
         $data = [
-            'returned_status_id' => 1
+            'returned_status_id' => $statusId
         ];
 
         assertNull($lending->returned_status_id);
@@ -522,14 +524,129 @@ class LendingTest extends TestCase
         $response->assertStatus(201);
 
         $editedLending = Lending::find($lending->id);
-        assertEquals(1, $editedLending->returned_status_id);
+        assertEquals($statusId, $editedLending->returned_status_id);
         assertNotNull($editedLending->returned_date);
+
+        $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopy->status_id);
+        assertTrue(empty($bookCopy->observations->toArray()));
+        assertEquals('', $bookCopy->comment);
+    }
+
+    public function test_return_lending_with_observations_id_empty(): void
+    {
+        $lending = Lending::first();
+        $bookCopy = $lending->bookCopy;
+        $statusId = $bookCopy->status_id < 3 ? $bookCopy->status_id + 1 : 1;
+        $data = [
+            'returned_status_id' => $statusId,
+            'observations_id' => [],
+            'comment' => 'Comment number 1'
+        ];
+
+        assertNull($lending->returned_status_id);
+        assertNull($lending->returned_date);
+
+        $response = $this->withHeaders($this->headers)->put(route('lendings.update', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->returned_status_id);
+        assertNotNull($editedLending->returned_date);
+
+        $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopy->status_id);
+        assertTrue(empty($bookCopy->observations->toArray()));
+        assertEquals('Comment number 1', $bookCopy->comment);
+    }
+
+    public function test_return_lending_with_comment_empty_and_without_observations_id(): void
+    {
+        $lending = Lending::first();
+        $bookCopy = $lending->bookCopy;
+        $statusId = $bookCopy->status_id < 3 ? $bookCopy->status_id + 1 : 1;
+        $data = [
+            'returned_status_id' => $statusId,
+            'comment' => ''
+        ];
+
+        assertNull($lending->returned_status_id);
+        assertNull($lending->returned_date);
+
+        $response = $this->withHeaders($this->headers)->put(route('lendings.update', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->returned_status_id);
+        assertNotNull($editedLending->returned_date);
+
+        $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopy->status_id);
+        assertTrue(empty($bookCopy->observations->toArray()));
+        assertEquals('', $bookCopy->comment);
+    }
+
+    public function test_return_lending_with_all(): void
+    {
+        $allObservationsId = array_map(fn($o) => $o['id'], Observation::all()->toArray());
+        $lending = Lending::first();
+        $bookCopy = $lending->bookCopy;
+        $statusId = $bookCopy->status_id < 3 ? $bookCopy->status_id + 1 : 1;
+        $data = [
+            'returned_status_id' => $statusId,
+            'observations_id' => $allObservationsId,
+            'comment' => 'Random comment'
+        ];
+
+        assertNull($lending->returned_status_id);
+        assertNull($lending->returned_date);
+
+        $response = $this->withHeaders($this->headers)->put(route('lendings.update', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->returned_status_id);
+        assertNotNull($editedLending->returned_date);
+
+        $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopy->status_id);
+        $bookCopyObservationsId =$bookCopy->observations()->getQuery()->pluck('observation_id')->toArray();
+        foreach ($allObservationsId as $observationId) {
+            assertTrue(in_array($observationId, $bookCopyObservationsId));
+        }
+        assertEquals('Random comment', $bookCopy->comment);
     }
 
     public function test_try_return_lending_without_returned_status_id(): void
     {
         $lending = Lending::first();
         $data = [];
+
+        assertNull($lending->returned_status_id);
+        assertNull($lending->returned_date);
+
+        $response = $this->withHeaders($this->headers)->put(route('lendings.update', $lending->id), $data);
+
+        $response->assertStatus(422);
+
+        assertEquals('Error en la validación', $response->json()['message']);
+        assertEquals(
+            'Se necesita el estado en que se devuelve la copia del libro',
+            $response->json()['errors']['returned_status_id'][0]
+        );
+    }
+
+    public function test_try_return_lending_without_returned_status_id_but_with_observations_and_comment(): void
+    {
+        $allObservationsId = array_map(fn($o) => $o['id'], Observation::all()->toArray());
+        $lending = Lending::first();
+        $data = [
+            'observations_id' => $allObservationsId,
+            'comment' => 'A comment'
+        ];
 
         assertNull($lending->returned_status_id);
         assertNull($lending->returned_date);

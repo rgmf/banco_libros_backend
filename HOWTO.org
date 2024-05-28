@@ -94,6 +94,12 @@ You can create .env.testing file that will be used by Laravel when execute PHPUn
 docker compose exec bl-app php artisan test --env=testing
 #+END_SRC
 
+If you want to filter by class, you can use `filter` option. For instance, if you want to launch tests on LendingText class:
+
+#+BEGIN_SRC bash
+docker compose exec bl-app php artisan test --env=testing --filter LendingTest
+#+END_SRC
+
 
 * Execute mariadb into container
 
