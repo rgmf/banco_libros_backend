@@ -526,6 +526,7 @@ class LendingTest extends TestCase
         $editedLending = Lending::find($lending->id);
         assertEquals($statusId, $editedLending->returned_status_id);
         assertNotNull($editedLending->returned_date);
+        assertEquals('', $editedLending->returned_comment);
 
         $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
         assertEquals($statusId, $bookCopy->status_id);
@@ -554,6 +555,7 @@ class LendingTest extends TestCase
         $editedLending = Lending::find($lending->id);
         assertEquals($statusId, $editedLending->returned_status_id);
         assertNotNull($editedLending->returned_date);
+        assertEquals('Comment number 1', $editedLending->returned_comment);
 
         $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
         assertEquals($statusId, $bookCopy->status_id);
@@ -581,6 +583,7 @@ class LendingTest extends TestCase
         $editedLending = Lending::find($lending->id);
         assertEquals($statusId, $editedLending->returned_status_id);
         assertNotNull($editedLending->returned_date);
+        assertEquals('', $editedLending->returned_comment);
 
         $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
         assertEquals($statusId, $bookCopy->status_id);
@@ -588,9 +591,65 @@ class LendingTest extends TestCase
         assertEquals('', $bookCopy->comment);
     }
 
+    public function test_return_lending_with_status_id_and_observations(): void
+    {
+        $o1 = new Observation;
+        $o1->title = 'Observation 1';
+        $o1->save();
+
+        $o2 = new Observation;
+        $o2->title = 'Observation 2';
+        $o2->save();
+
+        $o3 = new Observation;
+        $o3->title = 'Observation 3';
+        $o3->save();
+
+        $allObservationsId = [$o1->id, $o2->id, $o3->id];
+        $lending = Lending::first();
+        $bookCopy = $lending->bookCopy;
+        $statusId = $bookCopy->status_id < 3 ? $bookCopy->status_id + 1 : 1;
+        $data = [
+            'returned_status_id' => $statusId,
+            'observations_id' => $allObservationsId
+        ];
+
+        assertNull($lending->returned_status_id);
+        assertNull($lending->returned_date);
+
+        $response = $this->withHeaders($this->headers)->put(route('lendings.update', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->returned_status_id);
+        assertNotNull($editedLending->returned_date);
+        assertEquals("Observation 1\nObservation 2\nObservation 3", $editedLending->returned_comment);
+
+        $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopy->status_id);
+        $bookCopyObservationsId =$bookCopy->observations()->getQuery()->pluck('observation_id')->toArray();
+        foreach ($allObservationsId as $observationId) {
+            assertTrue(in_array($observationId, $bookCopyObservationsId));
+        }
+        assertEquals('', $bookCopy->comment);
+    }
+
     public function test_return_lending_with_all(): void
     {
-        $allObservationsId = array_map(fn($o) => $o['id'], Observation::all()->toArray());
+        $o1 = new Observation;
+        $o1->title = 'Observation 1';
+        $o1->save();
+
+        $o2 = new Observation;
+        $o2->title = 'Observation 2';
+        $o2->save();
+
+        $o3 = new Observation;
+        $o3->title = 'Observation 3';
+        $o3->save();
+
+        $allObservationsId = [$o1->id, $o2->id, $o3->id];
         $lending = Lending::first();
         $bookCopy = $lending->bookCopy;
         $statusId = $bookCopy->status_id < 3 ? $bookCopy->status_id + 1 : 1;
@@ -610,6 +669,7 @@ class LendingTest extends TestCase
         $editedLending = Lending::find($lending->id);
         assertEquals($statusId, $editedLending->returned_status_id);
         assertNotNull($editedLending->returned_date);
+        assertEquals("Observation 1\nObservation 2\nObservation 3\nRandom comment", $editedLending->returned_comment);
 
         $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
         assertEquals($statusId, $bookCopy->status_id);

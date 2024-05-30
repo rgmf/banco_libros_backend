@@ -14,6 +14,7 @@ use App\Http\Resources\LendingCollection;
 use App\Http\Resources\LendingResource;
 use App\Http\Resources\MessagesResource;
 use App\Models\BookCopy;
+use App\Models\Observation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use App\Jobs\SendEmailJob;
@@ -21,6 +22,15 @@ use Illuminate\Support\Facades\Log;
 
 class LendingController extends Controller
 {
+    private function buildObservationsSummary(array $observationsId)
+    {
+        $observations = Observation::find($observationsId);
+
+        return array_reduce($observations->toArray(), function ($carry, $observation) {
+            return $carry . ($carry !== '' ? "\n" : '') . $observation['title'];
+        }, '');
+    }
+
     public function index()
     {
     }
@@ -162,9 +172,11 @@ class LendingController extends Controller
             $statusId = $request->input('returned_status_id');
             $observationsId = $request->has('observations_id') ? $request->input('observations_id') : [];
             $comment = $request->has('comment') ? $request->input('comment') : '';
+            $observationsSummary = $this->buildObservationsSummary($observationsId);
 
             $lending->returned_status_id = $statusId;
             $lending->returned_date = now();
+            $lending->returned_comment = strlen($observationsSummary) > 0 && strlen($comment) > 0 ? $observationsSummary . "\n" . $comment : $observationsSummary . $comment;
             $lending->save();
 
             $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
