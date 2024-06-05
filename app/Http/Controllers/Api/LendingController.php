@@ -51,7 +51,7 @@ class LendingController extends Controller
         return new LendingCollection($lendings);
     }
 
-    public function indexByBookBarcode(int $barcode)
+    public function indexByBookBarcode(string $barcode)
     {
         $lendings = Lending::select('lendings.*')
                   ->join('students', 'lendings.student_id', '=', 'students.id')
@@ -72,18 +72,19 @@ class LendingController extends Controller
         return new LendingCollection($lendings);
     }
 
-    public function showByBookBarcode(int $barcode)
+    public function showByBookBarcode(string $barcode)
     {
         $lendings = Lending::with('student')
                   ->with('bookCopy.book')
                   ->with('bookCopy.status')
                   ->with('bookCopy.observations')
                   ->with('academicYear')
+                  ->where('returned_date', null)
                   ->whereHas('bookCopy', function ($query) use ($barcode) {
                       $query->where('barcode', $barcode);
                   })
                   ->first();
-        if ($lendings->count() == 0) {
+        if (!$lendings || $lendings->count() == 0) {
             return new ErrorResource(404, 'No existe préstamo en el que esté el libro con el código de barras dado');
         }
         return new LendingResource($lendings);
