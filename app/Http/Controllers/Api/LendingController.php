@@ -22,13 +22,17 @@ use Illuminate\Support\Facades\Log;
 
 class LendingController extends Controller
 {
-    private function buildObservationsSummary(array $observationsId)
+    private function buildObservationsSummary($observations)
     {
-        $observations = Observation::find($observationsId);
-
         return array_reduce($observations->toArray(), function ($carry, $observation) {
             return $carry . ($carry !== '' ? "\n" : '') . $observation['title'];
         }, '');
+    }
+
+    private function buildObservationsSummaryFromIds(array $observationsId)
+    {
+        $observations = Observation::find($observationsId);
+        return $this->buildObservationsSummary($observations);
     }
 
     public function index()
@@ -130,6 +134,10 @@ class LendingController extends Controller
                 $bookCopy->observations()->sync(array_key_exists('observations_id', $bookCopyData) ? $bookCopyData['observations_id'] : []);
                 $bookCopy->save();
 
+                $comment = $bookCopy->comment != null ? $bookCopy->comment : '';
+                $observationsSummary = $this->buildObservationsSummary($bookCopy->observations()->get());
+                $lendingComment = strlen($observationsSummary) > 0 && strlen($comment) > 0 ? $observationsSummary . "\n" . $comment : $observationsSummary . $comment;
+
                 $lendingItem = new Lending();
                 $lendingItem->fill([
                     'student_id' => $studentId,
@@ -137,6 +145,7 @@ class LendingController extends Controller
                     'academic_year_id' => $academicYearId,
                     'lending_date' => now(),
                     'lending_status_id' => $bookCopyData['status_id'],
+                    'lending_comment' => $lendingComment
                 ]);
                 $lendingItem->save();
 
@@ -173,7 +182,7 @@ class LendingController extends Controller
             $statusId = $request->input('returned_status_id');
             $observationsId = $request->has('observations_id') ? $request->input('observations_id') : [];
             $comment = $request->has('comment') ? $request->input('comment') : '';
-            $observationsSummary = $this->buildObservationsSummary($observationsId);
+            $observationsSummary = $this->buildObservationsSummaryFromIds($observationsId);
 
             $lending->returned_status_id = $statusId;
             $lending->returned_date = now();

@@ -36,7 +36,7 @@ class BookCopyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'comment' => 'string',
+            'comment' => 'nullable|string',
             'status_id' => 'numeric',
             'observations' => 'array',
             'observations.*.id' => 'numeric'

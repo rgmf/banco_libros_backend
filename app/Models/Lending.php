@@ -17,7 +17,8 @@ class Lending extends Model
         'lending_date',
         'returned_date',
         'lending_status_id',
-        'returned_status_id'
+        'returned_status_id',
+        'lending_comment'
     ];
 
     public function student(): BelongsTo

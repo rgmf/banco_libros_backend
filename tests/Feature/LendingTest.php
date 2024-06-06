@@ -129,6 +129,71 @@ class LendingTest extends TestCase
         }
     }
 
+    public function test_create_a_lending_with_observations_and_comments_check_lending_comment(): void
+    {
+        $o1 = new Observation;
+        $o1->title = 'Observation 1';
+        $o1->save();
+
+        $o2 = new Observation;
+        $o2->title = 'Observation 2';
+        $o2->save();
+
+        $o3 = new Observation;
+        $o3->title = 'Observation 3';
+        $o3->save();
+
+        $bookCopies = BookCopy::doesntHave('lendings')->with('observations')->get()->take(3);
+        $bookCopiesArray = [];
+        foreach ($bookCopies as $bookCopy) {
+            $bookCopy->observations()->detach();
+            $bookCopy->observations()->attach([$o1->id, $o2->id, $o3->id]);
+            $bookCopy->save();
+            $bookCopiesArray[] = BookCopy::with('observations')->find($bookCopy->id);
+        }
+
+        $studentWithNoLendings = Student::create([
+            'nia' => '21212121',
+            'name' => 'No',
+            'lastname1' => 'Lending',
+            'lastname2' => 'Student',
+            'cohort_id' => Cohort::first()->id
+        ]);
+        $academicYear = AcademicYear::first();
+
+        $bookCopiesArrayFiltered = array_map(
+            fn($b) => [
+                'id' => $b->id,
+                'status_id' => $b->status_id,
+                'observations_id' => array_map(fn($o) => $o['id'], $b->observations()->get()->toArray()),
+                'comment' => 'New comment'
+            ],
+            $bookCopiesArray
+        );
+
+        $lending = [
+            'student_id' => $studentWithNoLendings->id,
+            'academic_year_id' => $academicYear->id,
+            'book_copies' => $bookCopiesArrayFiltered
+        ];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.store'), $lending);
+        $response->assertStatus(200);
+
+        $data = $response->json()['data'];
+        foreach ($data as $lending) {
+            assertLending($lending);
+            $editedLending = Lending::find($lending['id']);
+            assertNotNull($editedLending->lending_date);
+            assertEquals("Observation 1\nObservation 2\nObservation 3\nNew comment", $editedLending->lending_comment);
+        }
+
+        foreach ($bookCopiesArrayFiltered as $bookCopyArray) {
+            $b = BookCopy::find($bookCopyArray['id']);
+            assertEquals($b->comment, 'New comment');
+        }
+    }
+
     public function test_append_several_book_copies_to_a_current_student_lending(): void
     {
         $student = Student::whereHas('lendings')->first();
