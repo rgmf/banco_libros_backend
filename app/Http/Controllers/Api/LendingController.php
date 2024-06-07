@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Lending;
 use App\Http\Requests\LendingRequest;
 use App\Http\Requests\LendingReturnRequest;
+use App\Http\Requests\LendingEditRequest;
 use App\Http\Requests\LendingUpdateRequest;
 use App\Http\Requests\LendingGradesMessagingRequest;
 use App\Http\Resources\ErrorResource;
@@ -173,6 +174,11 @@ class LendingController extends Controller
         }
     }
 
+    /**
+     * Updating a lending results in a return lending.
+     * 
+     * Also, book copy is updated with status, observations and comment.
+     */
     public function update(LendingUpdateRequest $request, Lending $lending)
     {
         try {
@@ -200,7 +206,7 @@ class LendingController extends Controller
             return new LendingResource($lending, 201);
         } catch (\Exception $e) {
             DB::rollback();
-            return new ErrorResource(500, 'Error al intentar modificar el préstamos', $e);
+            return new ErrorResource(500, 'Error al intentar devolver el préstamos', $e);
         }
     }
 
@@ -215,7 +221,57 @@ class LendingController extends Controller
         }
     }
 
-    public function return(LendingReturnRequest $request)
+    /**
+     * Editing status and observations (comment) about the lending.
+     * 
+     * Also, book copy is updated with status, observations and comment.
+     */
+    public function edit(LendingEditRequest $request, int $lendingId)
+    {
+        try {
+            DB::reconnect();
+            DB::beginTransaction();
+
+            $lending = Lending::findOrFail($lendingId);
+            $bookCopy = BookCopy::findOrFail($lending->bookCopy->id);
+
+            if ($request->has('status_id')) {
+                $lending->lending_status_id = $request->input('status_id');
+                $bookCopy->status_id = $request->input('status_id');
+            }
+
+            if ($request->has('observations_id') || $request->has('comment')) {
+                $lending->lending_comment = '';
+            }
+
+            if ($request->has('observations_id')) {
+                $observationsId = $request->input('observations_id');
+                $observationsSummary = $this->buildObservationsSummaryFromIds($observationsId);
+                $lending->lending_comment = $observationsSummary;
+                $bookCopy->observations()->sync($observationsId);
+            }
+
+            if ($request->has('comment')) {
+                $comment = $request->input('comment', '');
+                if (!empty($comment)) {
+                    $lending->lending_comment .= ($lending->lending_comment ? "\n" : '') . $comment;
+                }
+                $bookCopy->comment = $comment;
+            }
+
+            $lending->save();
+            $bookCopy->save();
+
+            DB::commit();
+
+            return new LendingResource($lending, 201);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return new ErrorResource(500, 'Error al intentar editar el préstamos', $e);
+        }
+    }
+
+    /*public function return(LendingReturnRequest $request)
     {
         try {
             DB::reconnect();
@@ -276,7 +332,7 @@ class LendingController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
         }
-    }
+    }*/
 
     public function gradesMessaging(LendingGradesMessagingRequest $request)
     {

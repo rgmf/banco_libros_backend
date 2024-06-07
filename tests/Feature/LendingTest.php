@@ -787,6 +787,287 @@ class LendingTest extends TestCase
         );
     }
 
+    public function test_edit_lending_with_all(): void
+    {
+        $o1 = new Observation;
+        $o1->title = 'Observation 1';
+        $o1->save();
+
+        $o2 = new Observation;
+        $o2->title = 'Observation 2';
+        $o2->save();
+
+        $o3 = new Observation;
+        $o3->title = 'Observation 3';
+        $o3->save();
+
+        $allObservationsId = [$o1->id, $o2->id, $o3->id];
+        $lending = Lending::first();
+        $bookCopy = $lending->bookCopy;
+        $statusId = $bookCopy->status_id < 3 ? $bookCopy->status_id + 1 : 1;
+        $data = [
+            'status_id' => $statusId,
+            'observations_id' => $allObservationsId,
+            'comment' => 'Random comment'
+        ];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.edit', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->lending_status_id);
+        assertEquals("Observation 1\nObservation 2\nObservation 3\nRandom comment", $editedLending->lending_comment);
+
+        $bookCopy = BookCopy::find($bookCopy->id);
+        assertEquals($statusId, $bookCopy->status_id);
+        assertEquals("Random comment", $bookCopy->comment);
+        $bookCopyObservationsId = $bookCopy->observations()->getQuery()->pluck('observation_id')->toArray();
+        foreach ($allObservationsId as $observationId) {
+            assertTrue(in_array($observationId, $bookCopyObservationsId));
+        }
+    }
+
+    public function test_edit_lending_with_only_status_id(): void
+    {
+        $lending = Lending::first();
+        $lendingComment = $lending->lending_comment;
+        $bookCopy = $lending->bookCopy;
+        $statusId = $bookCopy->status_id < 3 ? $bookCopy->status_id + 1 : 1;
+        $data = [
+            'status_id' => $statusId
+        ];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.edit', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->lending_status_id);
+        assertEquals($lendingComment, $editedLending->lending_comment);
+
+        $bookCopyUpdated = BookCopy::find($bookCopy->id);
+        assertEquals($statusId, $bookCopyUpdated->status_id);
+        assertEquals($bookCopy->comment, $bookCopyUpdated->comment);
+        $bookCopyObservationsId = $bookCopyUpdated->observations()->getQuery()->pluck('observation_id')->toArray();
+        foreach ($bookCopy->observations()->getQuery()->pluck('observation_id')->toArray() as $observationId) {
+            assertTrue(in_array($observationId, $bookCopyObservationsId));
+        }
+    }
+
+    public function test_edit_lending_with_only_observations(): void
+    {
+        $o1 = new Observation;
+        $o1->title = 'Observation 1';
+        $o1->save();
+
+        $o2 = new Observation;
+        $o2->title = 'Observation 2';
+        $o2->save();
+
+        $o3 = new Observation;
+        $o3->title = 'Observation 3';
+        $o3->save();
+
+        $allObservationsId = [$o1->id, $o2->id, $o3->id];
+        $lending = Lending::first();
+        $statusId = $lending->lending_status_id;
+        $data = [
+            'observations_id' => $allObservationsId
+        ];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.edit', $lending->id), $data);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->lending_status_id);
+        assertEquals("Observation 1\nObservation 2\nObservation 3", $editedLending->lending_comment);
+
+        $bookCopyUpdated = BookCopy::find($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopyUpdated->status_id);
+        assertEquals($lending->bookCopy->comment, $bookCopyUpdated->comment);
+        $bookCopyObservationsId = $bookCopyUpdated->observations()->getQuery()->pluck('observation_id')->toArray();
+        foreach ($allObservationsId as $observationId) {
+            assertTrue(in_array($observationId, $bookCopyObservationsId));
+        }
+    }
+
+    public function test_edit_lending_with_only_comment(): void
+    {
+        $lending = Lending::first();
+        $statusId = $lending->lending_status_id;
+        $data = [
+            'comment' => 'Nuevo comentario'
+        ];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.edit', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->lending_status_id);
+        assertEquals("Nuevo comentario", $editedLending->lending_comment);
+
+        $bookCopyUpdated = BookCopy::find($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopyUpdated->status_id);
+        assertEquals("Nuevo comentario", $bookCopyUpdated->comment);
+        $bookCopyObservationsId = $bookCopyUpdated->observations()->getQuery()->pluck('observation_id')->toArray();
+        foreach ($lending->bookCopy->observations()->getQuery()->pluck('observation_id')->toArray() as $observationId) {
+            assertTrue(in_array($observationId, $bookCopyObservationsId));
+        }
+    }
+
+    public function test_edit_lending_empty(): void
+    {
+        $lending = Lending::first();
+        $statusId = $lending->lending_status_id;
+        $lendingComment = $lending->lending_comment;
+        $data = [];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.edit', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->lending_status_id);
+        assertEquals($lendingComment, $editedLending->lending_comment);
+
+        $bookCopyUpdated = BookCopy::find($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopyUpdated->status_id);
+        assertEquals($lending->bookCopy->comment, $bookCopyUpdated->comment);
+        $bookCopyObservationsId = $bookCopyUpdated->observations()->getQuery()->pluck('observation_id')->toArray();
+        foreach ($lending->bookCopy->observations()->getQuery()->pluck('observation_id')->toArray() as $observationId) {
+            assertTrue(in_array($observationId, $bookCopyObservationsId));
+        }
+    }
+
+    public function test_edit_lending_observations_empty(): void
+    {
+        $lending = Lending::first();
+        $lending->lending_comment = 'Comentario';
+        $lending->save();
+        
+        $statusId = $lending->lending_status_id;
+        $lendingComment = $lending->lending_comment;
+        $data = [
+            'observations_id' => []
+        ];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.edit', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->lending_status_id);
+        assertEquals('', $editedLending->lending_comment);
+
+        $bookCopyUpdated = BookCopy::find($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopyUpdated->status_id);
+        assertEquals($lending->bookCopy->comment, $bookCopyUpdated->comment);
+        $bookCopyObservationsId = $bookCopyUpdated->observations()->getQuery()->pluck('observation_id')->toArray();
+        assertTrue(empty($bookCopyObservationsId));
+    }
+
+    public function test_edit_lending_comment_empty(): void
+    {
+        $lending = Lending::first();
+        $lending->lending_comment = 'Comentario';
+        $lending->save();
+
+        $statusId = $lending->lending_status_id;
+        $lendingComment = $lending->lending_comment;
+        $data = [
+            'comment' => ''
+        ];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.edit', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->lending_status_id);
+        assertEquals('', $editedLending->lending_comment);
+
+        $bookCopyUpdated = BookCopy::find($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopyUpdated->status_id);
+        assertNull($bookCopyUpdated->comment);
+        $bookCopyObservationsId = $bookCopyUpdated->observations()->getQuery()->pluck('observation_id')->toArray();
+        foreach ($lending->bookCopy->observations()->getQuery()->pluck('observation_id')->toArray() as $observationId) {
+            assertTrue(in_array($observationId, $bookCopyObservationsId));
+        }
+    }
+
+    public function test_edit_lending_observations_empty_with_comment(): void
+    {
+        $lending = Lending::first();
+        $lending->lending_comment = 'Comentario';
+        $lending->save();
+
+        $statusId = $lending->lending_status_id;
+        $lendingComment = $lending->lending_comment;
+        $data = [
+            'observations_id' => [],
+            'comment' => 'Nuevo comentario'
+        ];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.edit', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->lending_status_id);
+        assertEquals("Nuevo comentario", $editedLending->lending_comment);
+
+        $bookCopyUpdated = BookCopy::find($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopyUpdated->status_id);
+        assertEquals('Nuevo comentario', $bookCopyUpdated->comment);
+        $bookCopyObservationsId = $bookCopyUpdated->observations()->getQuery()->pluck('observation_id')->toArray();
+        assertTrue(empty($bookCopyObservationsId));
+    }
+
+    public function test_edit_lending_comment_empty_with_observations(): void
+    {
+        $o1 = new Observation;
+        $o1->title = 'Observation 1';
+        $o1->save();
+
+        $o2 = new Observation;
+        $o2->title = 'Observation 2';
+        $o2->save();
+
+        $o3 = new Observation;
+        $o3->title = 'Observation 3';
+        $o3->save();
+
+        $allObservationsId = [$o1->id, $o2->id, $o3->id];
+
+        $lending = Lending::first();
+        $lending->lending_comment = 'Comentario';
+        $lending->save();
+
+        $statusId = $lending->lending_status_id;
+        $lendingComment = $lending->lending_comment;
+        $data = [
+            'observations_id' => $allObservationsId,
+            'comment' => ''
+        ];
+
+        $response = $this->withHeaders($this->headers)->post(route('lendings.edit', $lending->id), $data);
+
+        $response->assertStatus(201);
+
+        $editedLending = Lending::find($lending->id);
+        assertEquals($statusId, $editedLending->lending_status_id);
+        assertEquals("Observation 1\nObservation 2\nObservation 3", $editedLending->lending_comment);
+
+        $bookCopyUpdated = BookCopy::find($lending->bookCopy->id);
+        assertEquals($statusId, $bookCopyUpdated->status_id);
+        assertNull($bookCopyUpdated->comment);
+        $bookCopyObservationsId = $bookCopyUpdated->observations()->getQuery()->pluck('observation_id')->toArray();
+        foreach ($allObservationsId as $observationId) {
+            assertTrue(in_array($observationId, $bookCopyObservationsId));
+        }
+    }
+
     public function test_lending_grades_messaging_ok(): void
     {
         $firstGrade = Grade::first();

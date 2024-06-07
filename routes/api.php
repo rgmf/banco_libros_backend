@@ -65,6 +65,9 @@ Route::middleware('verifyToken')->group(function () {
         ->name('students.messaging');
 
     Route::apiResource('lendings', LendingController::class)->only(['store', 'update', 'destroy']);
+    Route::post('lendings/edit/{lending_id}', [LendingController::class, 'edit'])
+        ->where('lending_id', '[0-9]+')
+        ->name('lendings.edit');
     Route::get('lendings/student/{student_id}/index', [LendingController::class, 'indexByStudent'])
         ->where('student_id', '[0-9]+')
         ->name('lendings.indexbystudent');
@@ -76,8 +79,8 @@ Route::middleware('verifyToken')->group(function () {
         ->name('lendings.showbybookbarcode');
     Route::post('lendings/messaging', [LendingController::class, 'gradesMessaging'])
         ->name('lendings.messaging');
-    Route::post('lendings/return', [LendingController::class, 'return'])
-        ->name('lending.return');
+    /*Route::post('lendings/return', [LendingController::class, 'return'])
+        ->name('lending.return');*/
 
     Route::apiResource('academicyears', AcademicYearController::class)->only(['index', 'show', 'store']);
 });
