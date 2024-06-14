@@ -176,7 +176,7 @@ class LendingController extends Controller
 
     /**
      * Updating a lending results in a return lending.
-     * 
+     *
      * Also, book copy is updated with status, observations and comment.
      */
     public function update(LendingUpdateRequest $request, Lending $lending)
@@ -223,7 +223,7 @@ class LendingController extends Controller
 
     /**
      * Editing status and observations (comment) about the lending.
-     * 
+     *
      * Also, book copy is updated with status, observations and comment.
      */
     public function edit(LendingEditRequest $request, int $lendingId)

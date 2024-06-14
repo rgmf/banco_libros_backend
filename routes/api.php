@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\StatusController;
 use App\Http\Controllers\Api\ObservationController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\LendingController;
+use App\Http\Controllers\Api\LendingStatsController;
 use App\Http\Controllers\Api\GradeController;
 
 /*
@@ -56,7 +57,7 @@ Route::middleware('verifyToken')->group(function () {
 
     Route::get('observations', [ObservationController::class, 'index'])->name('observations.index');
 
-    Route::apiResource('cohorts', CohortController::class)->only(['index']);
+    Route::apiResource('cohorts', CohortController::class)->only(['index', 'show']);
     Route::post('cohorts/bulk', [CohortController::class, 'storeBulk'])->name('cohorts.storebulk');
 
     Route::apiResource('students', StudentController::class)->only(['index', 'show']);
@@ -81,6 +82,11 @@ Route::middleware('verifyToken')->group(function () {
         ->name('lendings.messaging');
     /*Route::post('lendings/return', [LendingController::class, 'return'])
         ->name('lending.return');*/
+
+    Route::get('lendings/stats/list/return/cohort/{cohort_id}/academicyear/{academic_year_id}', [LendingStatsController::class, 'listStudentsReturnByCohort'])
+        ->where('cohort_id', '[0-9]+')
+        ->where('academic_year_id', '[0-9]+')
+        ->name('lendingsstats.liststudentsreturn');
 
     Route::apiResource('academicyears', AcademicYearController::class)->only(['index', 'show', 'store']);
 });
