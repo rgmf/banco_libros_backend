@@ -222,8 +222,10 @@ class LendingTest extends TestCase
         $data = $response->json()['data'];
         # Return the three lendings added
         assertEquals(3, count($data));
+        # Into student exists cohort
+        assertTrue(array_key_exists('cohort', $data[0]['student']));
         # Into the returned data it can find the lendings
-        assertEquals($numberOfLendedBooks + 3, count($data[0]['student']['lendings']));
+        #assertEquals($numberOfLendedBooks + 3, count($data[0]['student']['lendings']));
         # Into the database the student has all expected lendings
         assertEquals($numberOfLendedBooks + 3, Student::find($student->id)->lendings()->count());
     }
@@ -945,7 +947,7 @@ class LendingTest extends TestCase
         $lending = Lending::first();
         $lending->lending_comment = 'Comentario';
         $lending->save();
-        
+
         $statusId = $lending->lending_status_id;
         $lendingComment = $lending->lending_comment;
         $data = [

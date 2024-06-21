@@ -15,7 +15,11 @@ use App\Models\Student;
 use App\Models\Lending;
 use App\Models\Status;
 use App\Models\BookCopy;
+
+use function PHPUnit\Framework\assertCount;
 use function PHPUnit\Framework\assertEquals;
+use function Tests\assertByBookCopyLendingHistory;
+use function Tests\assertByStudentLendingHistory;
 
 class LendingStatsTest extends TestCase
 {
@@ -72,6 +76,155 @@ class LendingStatsTest extends TestCase
             'Authorization' => 'Bearer ' . $token,
             'Accept' => 'application/json'
         ];
+    }
+
+    public function test_get_list_lending_stats_by_bookcopy_doest_not_exists(): void
+    {
+        $bookCopy = Bookcopy::first();
+        $barcode = $bookCopy->barcode;
+
+        BookCopy::first()->delete();
+
+        $response = $this->withHeaders($this->headers)
+            ->get(route('lendingsstats.listlendingbookcopy', $barcode));
+
+        $response->assertStatus(404);
+    }
+
+    public function test_get_list_lending_stats_by_bookcopy_without_lendings(): void
+    {
+        $bookCopy = Bookcopy::first();
+
+        $response = $this->withHeaders($this->headers)
+            ->get(route('lendingsstats.listlendingbookcopy', $bookCopy->barcode));
+
+        $response->assertStatus(200);
+        assertByBookCopyLendingHistory($response->json()['data']);
+        assertCount(0, $response->json()['data']['lendings']);
+    }
+
+    public function test_get_list_lending_stats_by_bookcopy_1_lending(): void
+    {
+        $bookCopy = Bookcopy::first();
+        Lending::create([
+            'student_id' => $this->students[0]->id,
+            'book_copy_id' => $bookCopy->id,
+            'academic_year_id' => $this->academicYears[0]->id,
+            'lending_date' => '2020-10-10 10:10:10',
+            'returned_date' => null,
+            'lending_status_id' => Status::first()->id,
+            'returned_status_id' => null,
+            'lending_comment' => null
+        ]);
+
+        $response = $this->withHeaders($this->headers)
+            ->get(route('lendingsstats.listlendingbookcopy', $bookCopy->barcode));
+
+        $response->assertStatus(200);
+        assertByBookCopyLendingHistory($response->json()['data']);
+        assertCount(1, $response->json()['data']['lendings']);
+    }
+
+    public function test_get_list_lending_stats_by_bookcopy_several_lendings(): void
+    {
+        $bookCopy = BookCopy::first();
+
+        $academicYears = AcademicYear::all();
+        $academicYears->each(function($academicYear) use ($bookCopy) {
+            Lending::create([
+                'student_id' => $this->students[0]->id,
+                'book_copy_id' => $bookCopy->id,
+                'academic_year_id' => $academicYear->id,
+                'lending_date' => '2020-09-10 10:10:10',
+                'returned_date' => '2021-06-10 10:10:10',
+                'lending_status_id' => Status::first()->id,
+                'returned_status_id' => Status::first()->id,
+                'lending_comment' => 'Así se prestó',
+                'returned_comment' => 'Y así se devolvió'
+            ]);
+        });
+
+        $response = $this->withHeaders($this->headers)
+            ->get(route('lendingsstats.listlendingbookcopy', $bookCopy->barcode));
+
+        $response->assertStatus(200);
+        assertByBookCopyLendingHistory($response->json()['data']);
+        assertCount($academicYears->count(), $response->json()['data']['lendings']);
+    }
+
+    public function test_get_list_lending_stats_by_student_doest_not_exists(): void
+    {
+        $student = Student::first();
+        $id = $student->id;
+
+        Student::first()->delete();
+
+        $response = $this->withHeaders($this->headers)
+            ->get(route('lendingsstats.listlendingstudent', $id));
+
+        $response->assertStatus(404);
+    }
+
+    public function test_get_list_lending_stats_by_student_without_lendings(): void
+    {
+        $response = $this->withHeaders($this->headers)
+            ->get(route('lendingsstats.listlendingstudent', $this->students[0]->id));
+
+        $response->assertStatus(200);
+        assertByStudentLendingHistory($response->json()['data']);
+        assertCount(0, $response->json()['data']['lendings']);
+    }
+
+    public function test_get_list_lending_stats_by_student_1_lending(): void
+    {
+        $bookCopy = BookCopy::first();
+        $studentId = $this->students[0]->id;
+
+        Lending::create([
+            'student_id' => $studentId,
+            'book_copy_id' => $bookCopy->id,
+            'academic_year_id' => $this->academicYears[0]->id,
+            'lending_date' => '2020-10-10 10:10:10',
+            'returned_date' => null,
+            'lending_status_id' => Status::first()->id,
+            'returned_status_id' => null,
+            'lending_comment' => null
+        ]);
+
+        $response = $this->withHeaders($this->headers)
+            ->get(route('lendingsstats.listlendingstudent', $studentId));
+
+        $response->assertStatus(200);
+        assertByStudentLendingHistory($response->json()['data']);
+        assertCount(1, $response->json()['data']['lendings']);
+    }
+
+    public function test_get_list_lending_stats_by_student_several_lendings(): void
+    {
+        $bookCopy = BookCopy::first();
+        $studentId = $this->students[0]->id;
+
+        $academicYears = AcademicYear::all();
+        $academicYears->each(function($academicYear) use ($bookCopy, $studentId) {
+            Lending::create([
+                'student_id' => $studentId,
+                'book_copy_id' => $bookCopy->id,
+                'academic_year_id' => $academicYear->id,
+                'lending_date' => '2020-09-10 10:10:10',
+                'returned_date' => '2021-06-10 10:10:10',
+                'lending_status_id' => Status::first()->id,
+                'returned_status_id' => Status::first()->id,
+                'lending_comment' => 'Así se prestó',
+                'returned_comment' => 'Y así se devolvió'
+            ]);
+        });
+
+        $response = $this->withHeaders($this->headers)
+            ->get(route('lendingsstats.listlendingstudent', $studentId));
+
+        $response->assertStatus(200);
+        assertByStudentLendingHistory($response->json()['data']);
+        assertCount($academicYears->count(), $response->json()['data']['lendings']);
     }
 
     /**

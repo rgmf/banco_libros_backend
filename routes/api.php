@@ -83,6 +83,12 @@ Route::middleware('verifyToken')->group(function () {
     /*Route::post('lendings/return', [LendingController::class, 'return'])
         ->name('lending.return');*/
 
+    Route::get('lendings/stats/history/bookcopy/{barcode}', [LendingStatsController::class, 'listLendingByBookcopy'])
+        ->where('barcode', '[0-9]{13}')
+        ->name('lendingsstats.listlendingbookcopy');
+    Route::get('lendings/stats/history/student/{student_id}', [LendingStatsController::class, 'listLendingByStudent'])
+        ->where('barcode', '[0-9]{13}')
+        ->name('lendingsstats.listlendingstudent');
     Route::get('lendings/stats/list/return/cohort/{cohort_id}/academicyear/{academic_year_id}', [LendingStatsController::class, 'listStudentsReturnByCohort'])
         ->where('cohort_id', '[0-9]+')
         ->where('academic_year_id', '[0-9]+')

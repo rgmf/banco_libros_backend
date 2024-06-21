@@ -35,4 +35,14 @@ class Lending extends Model
     {
         return $this->belongsTo(AcademicYear::class);
     }
+
+    public function lendingStatus(): BelongsTo
+    {
+        return $this->belongsTo(Status::class, 'lending_status_id');
+    }
+
+    public function returnedStatus(): BelongsTo
+    {
+        return $this->belongsTo(Status::class, 'returned_status_id');
+    }
 }

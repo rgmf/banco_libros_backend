@@ -32,6 +32,8 @@ class LendingResource extends JsonResource
             'returned_date' => $this->returned_date,
             'lending_status_id' => $this->lending_status_id,
             'returned_status_id' => $this->returned_status_id,
+            'lending_comment' => $this->lending_comment,
+            'returned_comment' => $this->returned_comment,
             'student' => $this->whenLoaded('student', function() {
                 return new StudentResource($this->student);
             }),
@@ -40,7 +42,13 @@ class LendingResource extends JsonResource
             }),
             'academic_year' => $this->whenLoaded('academicYear', function() {
                 return new AcademicYearResource($this->academicYear);
-            })
+            }),
+            'lending_status' => $this->whenLoaded('lendingStatus', function() {
+                return new StatusResource($this->lendingStatus);
+            }),
+            'returned_status' => $this->whenLoaded('returnedStatus', function() {
+                return new StatusResource($this->returnedStatus);
+            }),
         ];
     }
 

@@ -97,6 +97,7 @@ class LendingController extends Controller
 
     public function store(LendingRequest $request)
     {
+        $currentBookCopyId = null;
         try {
             DB::reconnect();
             DB::beginTransaction();
@@ -117,6 +118,8 @@ class LendingController extends Controller
             }
 
             foreach ($bookCopies as $bookCopyData) {
+                $currentBookCopyId = $bookCopyData['id'];
+
                 // Book already lended and not returned?
                 $existingLending = Lending::where('book_copy_id', $bookCopyData['id'])
                     ->whereNull('returned_date')
@@ -150,7 +153,7 @@ class LendingController extends Controller
                 ]);
                 $lendingItem->save();
 
-                $lendingItem->loadMissing(['student', 'bookCopy', 'bookCopy.observations', 'bookCopy.status', 'academicYear']);
+                $lendingItem->loadMissing(['student', 'student.cohort', 'bookCopy', 'bookCopy.observations', 'bookCopy.status', 'academicYear']);
 
                 $lending[] = $lendingItem;
             }
@@ -164,7 +167,14 @@ class LendingController extends Controller
             DB::rollBack();
             $error_code = $e->errorInfo[1];
             if ($error_code == 1062) {
-                return new ErrorResource(409, 'El libro ya está prestado', $e);
+                $bc = $currentBookCopyId != null ? BookCopy::find($currentBookCopyId) : null;
+                return new ErrorResource(
+                    409,
+                    $bc != null ?
+                        'El libro con el código de barras ' . $bc->barcode . ' ya está prestado o ha sido prestado en este año académico y, por tanto, solo puede ser prestado en otro año académico.' :
+                        'El libro ha sido ya está prestado o ha sido prestado en este año académico y, por tanto, solo puede ser prestado en otro año académico.',
+                    $e
+                );
             } else {
                 return new ErrorResource(500, 'Error al prestar el libro', $e);
             }
