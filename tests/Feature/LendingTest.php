@@ -51,6 +51,20 @@ class LendingTest extends TestCase
         ];
     }
 
+    public function test_get_lending_by_book_barcode(): void
+    {
+        $lending = Lending::first();
+
+        $response = $this->withHeaders($this->headers)->get(
+            route('lendings.indexbybookbarcode', $lending->bookCopy->barcode)
+        );
+
+        $response->assertStatus(200);
+        foreach ($response->json()['data'] as $lending) {
+            assertLending($lending);
+        }
+    }
+
     public function test_create_a_lending_with_several_book_copies(): void
     {
         $studentWithNoLendings = Student::create([

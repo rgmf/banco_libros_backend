@@ -15,6 +15,8 @@ function assertLending(array $lending): void
     assertTrue(array_key_exists('returned_status_id', $lending));
 
     assertTrue(array_key_exists('student', $lending));
+    assertTrue(array_key_exists('cohort', $lending['student']));
+
     assertTrue(array_key_exists('book_copy', $lending));
     assertTrue(array_key_exists('academic_year', $lending));
 }

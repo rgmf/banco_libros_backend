@@ -35,7 +35,7 @@ class LendingResource extends JsonResource
             'lending_comment' => $this->lending_comment,
             'returned_comment' => $this->returned_comment,
             'student' => $this->whenLoaded('student', function() {
-                return new StudentResource($this->student);
+                return new StudentResource($this->student->load('cohort'));
             }),
             'book_copy' => $this->whenLoaded('bookCopy', function() {
                 return new BookCopyResource($this->bookCopy);
